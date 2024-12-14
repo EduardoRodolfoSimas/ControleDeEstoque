@@ -1,0 +1,155 @@
+@page "/Categoria"
+@using ControleDeEstoque.Model
+@using ControleDeEstoque.Services
+@inject ICategoriaService CategoriaService
+@rendermode InteractiveServer
+@using Blazorise
+@inject IJSRuntime JSRuntime
+
+<h3>Categorias</h3>
+
+@if (categorias == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Código</th>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th><button class="btn btn-primary" @onclick="OpenAddCategoriaModal">Nova categoria</button></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var categoria in categorias)
+        {
+            <tr>
+                <td>@categoria.Id</td>
+                <td>@categoria.Nome</td>
+                <td>@categoria.Descricao</td>
+                <td>
+                    <button class="btn btn-warning" @onclick="() => OpenUpdateCategoriaModal(categoria)">Atualizar</button>
+                    <button class="btn btn-danger" @onclick="() => OptionDeleteCategoriaButton(categoria)">Deletar</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<Modal @ref="modalAtualizarCategoria">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Atualizar categoria</strong>
+        </ModalHeader>   
+        <ModalBody>
+            <Field>
+                <Label for="CategoriaNome" class="form-label">Nome</Label>
+                <input type="text" class="form-control" id="CategoriaNome" @bind="AtualizarCategoriaNome" placeholder="Insira o nome da categoria"/>
+                <Label for="CategoriaDescricao" class="form-label">Descrição</Label>
+                <input type="text" class="form-control" id="CategoriaDescricao" @bind="AtualizarCategoriaDescricao" placeholder="Insira a descrição da categoria"/>
+            </Field>
+        </ModalBody>
+    </ModalContent>
+</Modal>
+
+<Modal @ref="modalDeletarCategoria">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Deletar categoria</strong>
+        </ModalHeader>
+        <ModalBody>
+            <p>Tem certeza que deseja deletar a categoria @categoriaSelecionada.Nome?</p>
+        </ModalBody>
+        <ModalFooter>
+            <button class="btn btn-danger" @onclick="DeleteCategoria">Deletar</button>
+            <button class="btn btn-secondary" @onclick="() => modalDeletarCategoria.Hide()">Cancelar</button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<Modal @ref="modalCriarCategoria">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Adicionar uma nova categoria</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="CategoriaNome" class="form-label">Nome</Label>
+                <input type="text" class="form-control" id="CategoriaNome" @bind="NovoCategoriaNome" placeholder="Insira o nome da categoria"/>
+                <Label for="CategoriaDescricao" class="form-label">Descrição</Label>
+                <input type="text" class="form-control" id="CategoriaDescricao" @bind="NovoCategoriaDescricao" placeholder="Insira a descrição da categoria"/>
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <!--<Button Color="Color.Success" @onclick="InsertCategoriaButton">Salvar</Button>-->
+            <Button Color="Color.Danger" @onclick="CancelCategoriaButton">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code{
+
+    private List<Categoria> categorias;
+    private Modal modalCriarCategoria;
+    private Modal modalAtualizarCategoria;
+    private Modal modalDeletarCategoria;
+    private Categoria categoriaSelecionada;
+    private string NovoCategoriaNome;
+    private string NovoCategoriaDescricao;
+    private string AtualizarCategoriaNome;
+    private string AtualizarCategoriaDescricao;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        categorias = await CategoriaService.GetCategorias();
+    }
+    
+    private void OpenAddCategoriaModal()
+    {
+        NovoCategoriaNome = "";
+        NovoCategoriaDescricao = "";
+        modalCriarCategoria.Show();
+    }
+    
+    private void OpenUpdateCategoriaModal(Categoria categoria)
+    {
+        categoriaSelecionada = categoria;
+        AtualizarCategoriaNome = categoria.Nome;
+        AtualizarCategoriaDescricao = categoria.Descricao;
+        modalAtualizarCategoria.Show();
+    }
+    
+    private void OptionDeleteCategoriaButton(Categoria categoria)
+    {
+        categoriaSelecionada = categoria;
+        modalDeletarCategoria.Show();
+    }
+    
+    private async Task DeleteCategoria()
+    {
+        await CategoriaService.DeleteCategoria(categoriaSelecionada.Id);
+        categorias = await CategoriaService.GetCategorias();
+        modalDeletarCategoria.Hide();
+    }
+    
+    private void CancelCategoriaButton()
+    {
+        modalCriarCategoria.Hide();
+        modalAtualizarCategoria.Hide();
+    }
+    
+    private async Task UpdateCategoriaButton()
+    {
+        categoriaSelecionada.Nome = AtualizarCategoriaNome;
+        categoriaSelecionada.Descricao = AtualizarCategoriaDescricao;
+        await CategoriaService.UpdateCategoria(categoriaSelecionada);
+        categorias = await CategoriaService.GetCategorias();
+        modalAtualizarCategoria.Hide();
+    }
+    
+    
+}

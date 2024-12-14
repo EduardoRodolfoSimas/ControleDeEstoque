@@ -1,0 +1,239 @@
+@page "/produto"
+<PageTitle>Produtos</PageTitle>
+@using ControleDeEstoque.Model
+@using ControleDeEstoque.Services
+@inject IProdutoService ProdutoService
+@rendermode InteractiveServer
+@using Blazorise
+@inject IJSRuntime JSRuntime
+
+<h3>Tabela de produtos</h3>
+
+@if (produtos == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Código</th>
+            <th>Produto</th>
+            <th>Preço</th>
+            <th>Quantidade em estoque</th>
+            <th>Categoria</th>
+            <th><button class="btn btn-primary" @onclick="OpenAddProdutoModal">Novo produto</button></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var produto in produtos)
+        {
+            <tr>
+                <td>@produto.Sku</td>
+                <td>@produto.Nome</td>
+                <td>R$: @produto.PrecoUnitario</td>
+                <td>@produto.QuantidadeProduto</td>
+                <td>@produto.Categoria</td>
+                <td>
+                    <button class="btn btn-warning" @onclick="() => OpenUpdateProdutoModal(produto)">Atualizar</button>
+                    <button class="btn btn-danger" @onclick="() => OptionDeleteProdutoButton(produto)">Deletar</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<Modal @ref="modalCriarProduto">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Adicionar um novo produto</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="ProdutoNome" class="form-label">Nome</Label>
+                <input type="text" class="form-control" id="ProdutoNome" @bind="NovoProdutoNome" placeholder="Insira o nome do produto"/>
+                <Label for="ProdutoSku" class="form-label">Código</Label>
+                <input type="text" class="form-control" id="ProdutoSku" @bind="NovoProdutoSku" placeholder="Insira o código do produto"/>
+                <Label for="ProdutoPreco" class="form-label">Preço Unitário</Label>
+                <input type="text" class="form-control" id="ProdutoPreco" @bind="NovoProdutoPreco" placeholder="Insira o preço unitário"/>
+                <Label for="ProdutoQuantidadeEstoque" class="form-label">Quantidade em estoque</Label>
+                <input type="text" class="form-control" id="ProdutoQuantidadeEstoque" @bind="NovoProdutoQuantidadeEstoque" placeholder="Insira a quantidade total em estoque" />
+                <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
+                <input type="text" class="form-control" id="ProdutoCategoria" @bind="NovoProdutoCategoria" placeholder="Insira a categoria do produto"/>
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="InsertProdutoButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelProdutoButton">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<Modal @ref="modalAtualizarProduto">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Atualizar produto</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="ProdutoNome" class="form-label">Nome</Label>
+                <input type="text" class="form-control" id="ProdutoNome" @bind="NovoProdutoNome" placeholder="Insira o nome do produto"/>
+                <Label for="ProdutoSku" class="form-label">Código</Label>
+                <input type="text" class="form-control" id="ProdutoSku" @bind="NovoProdutoSku" placeholder="Insira o código do produto"/>
+                <Label for="ProdutoPreco" class="form-label">Preço Unitário</Label>
+                <input type="text" class="form-control" id="ProdutoPreco" @bind="NovoProdutoPreco"/>
+                <Label for="ProdutoQuantidadeEstoque" class="form-label">Quantidade em estoque</Label>
+                <input type="text" class="form-control" id="ProdutoQuantidadeEstoque" @bind="NovoProdutoQuantidadeEstoque"/>
+                <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
+                <input type="text" class="form-control" id="ProdutoCategoria" @bind="NovoProdutoCategoria"/>
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="() => UpdateProdutoButton(produto)">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelProdutoButton">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<Modal @ref="modalExcluirProduto">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Excluir Produto</strong>
+        </ModalHeader>
+        <ModalBody>
+            <p>Tem certeza que deseja excluir o produto permanentemente?</p>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="() => DeleteProduto(produto)">Sim</Button>
+            <Button Color="Color.Danger" @onclick="CancelProdutoButton">Não</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    private string NovoProdutoNome;
+    private string NovoProdutoSku;
+    private decimal NovoProdutoPreco;
+    private int NovoProdutoQuantidadeEstoque;
+    private string NovoProdutoCategoria;
+    
+    private Modal modalCriarProduto;
+    private Modal modalAtualizarProduto;
+    private Modal modalExcluirProduto;
+
+    private List<Produto> produtos;
+    private Produto produto;
+
+    protected override async Task OnInitializedAsync()
+    {
+        produtos = await ProdutoService.GetProdutos();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            modalCriarProduto ??= new Modal();
+            modalAtualizarProduto ??= new Modal();
+        }
+    }
+
+    private void OpenAddProdutoModal()
+    {
+        modalCriarProduto.Show();
+    }
+
+    private async Task InsertProdutoButton()
+    {
+        var produto = new Produto
+        {
+            Nome = NovoProdutoNome,
+            Sku = NovoProdutoSku,
+            PrecoUnitario = NovoProdutoPreco,
+            QuantidadeProduto = NovoProdutoQuantidadeEstoque,
+            Categoria = NovoProdutoCategoria
+        };
+
+        if (string.IsNullOrEmpty(produto.Nome) || string.IsNullOrEmpty(produto.Sku))
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Por favor, preencha todos os campos obrigatórios.");
+        }
+        else if (await ProdutoService.SkuExists(produto.Sku))
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Já existe um produto com esse código.");
+        }
+        else
+        {
+            await ProdutoService.AddProduto(produto);
+            produtos = await ProdutoService.GetProdutos();
+            modalCriarProduto.Hide();
+        }
+    }
+
+    private void CancelProdutoButton()
+    {
+        NovoProdutoNome = null;
+        NovoProdutoSku = null;
+        NovoProdutoPreco = 0;
+        NovoProdutoQuantidadeEstoque = 0;
+        NovoProdutoCategoria = null;
+        modalCriarProduto.Hide();
+        modalAtualizarProduto.Hide();
+        modalExcluirProduto.Hide();
+    }
+
+    private void OptionDeleteProdutoButton (Produto produto)
+    {
+        if (produto != null)
+        {
+            modalExcluirProduto.Show();
+            
+        }
+    }
+    
+    private async Task DeleteProduto(Produto produto)
+    {
+        if (produto != null)
+        {
+            await ProdutoService.DeleteProduto(produto.Id);
+            produtos = await ProdutoService.GetProdutos();
+            modalExcluirProduto.Hide();
+        }
+    }
+    
+    private void OpenUpdateProdutoModal(Produto produto)
+    {
+        this.produto = produto;
+        NovoProdutoNome = produto.Nome;
+        NovoProdutoSku = produto.Sku;
+        NovoProdutoPreco = produto.PrecoUnitario;
+        NovoProdutoQuantidadeEstoque = produto.QuantidadeProduto;
+        NovoProdutoCategoria = produto.Categoria;
+        modalAtualizarProduto.Show();
+    }
+
+    private async Task UpdateProdutoButton(Produto produto)
+    {
+        if (produto != null)
+        {
+            produto.Nome = NovoProdutoNome;
+            produto.Sku = NovoProdutoSku;
+            produto.PrecoUnitario = NovoProdutoPreco;
+            produto.QuantidadeProduto = NovoProdutoQuantidadeEstoque;
+            produto.Categoria = NovoProdutoCategoria;
+            
+            if (string.IsNullOrEmpty(produto.Nome) || string.IsNullOrEmpty(produto.Sku))
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Por favor, preencha todos os campos obrigatórios.");
+            }
+            else
+            {
+                await ProdutoService.UpdateProduto(produto);
+                produtos = await ProdutoService.GetProdutos();
+                modalAtualizarProduto.Hide();
+            }
+        }
+    }
+}
