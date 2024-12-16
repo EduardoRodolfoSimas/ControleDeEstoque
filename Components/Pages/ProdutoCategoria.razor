@@ -113,16 +113,16 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        categorias = await CategoriaService.GetCategorias() ?? new List<Categoria>();
+        categorias = await CategoriaService.GetCategorias();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            modalCriarCategoria = new Modal();
-            modalAtualizarCategoria = new Modal();
-            modalDeletarCategoria = new Modal();
+            modalCriarCategoria ??= new Modal();
+            modalAtualizarCategoria ??= new Modal();
+            modalDeletarCategoria ??= new Modal();
         }
     }
 
