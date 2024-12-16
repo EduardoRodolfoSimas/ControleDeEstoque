@@ -2,10 +2,13 @@
 <PageTitle>Produtos</PageTitle>
 @using ControleDeEstoque.Model
 @using ControleDeEstoque.Services
-@inject IProdutoService ProdutoService
-@rendermode InteractiveServer
 @using Blazorise
+@inject IProdutoService ProdutoService
+@inject ICategoriaService CategoriaService
 @inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+
 
 <h3>Tabela de produtos</h3>
 
@@ -34,7 +37,7 @@ else
                 <td>@produto.Nome</td>
                 <td>R$: @produto.PrecoUnitario</td>
                 <td>@produto.QuantidadeProduto</td>
-                <td>@produto.Categoria</td>
+                <td>@produto.CategoriaId</td>
                 <td>
                     <button class="btn btn-warning" @onclick="() => OpenUpdateProdutoModal(produto)">Atualizar</button>
                     <button class="btn btn-danger" @onclick="() => OptionDeleteProdutoButton(produto)">Deletar</button>
@@ -60,8 +63,24 @@ else
                 <input type="text" class="form-control" id="ProdutoPreco" @bind="NovoProdutoPreco" placeholder="Insira o preço unitário"/>
                 <Label for="ProdutoQuantidadeEstoque" class="form-label">Quantidade em estoque</Label>
                 <input type="text" class="form-control" id="ProdutoQuantidadeEstoque" @bind="NovoProdutoQuantidadeEstoque" placeholder="Insira a quantidade total em estoque" />
-                <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
-                <input type="text" class="form-control" id="ProdutoCategoria" @bind="NovoProdutoCategoria" placeholder="Insira a categoria do produto"/>
+                <Dropdown>
+                    <DropdownToggle Color="Color.Default" Size="Size.Medium">
+                        Selecionar a categoria
+                    </DropdownToggle>
+                    <DropdownMenu>
+                        @if (categorias == null)
+                        { 
+                            <DropdownItem disabled>Nenhuma categoria cadastrada</DropdownItem>
+                        }
+                        else 
+                        {
+                            foreach(var categoria in categorias)
+                            {
+                                <DropdownItem @onclick="() => NovoProdutoCategoria = categoria.Id">@categoria.Nome</DropdownItem>
+                            } 
+                        }
+                    </DropdownMenu>
+                </Dropdown>
             </Field>
         </ModalBody>
         <ModalFooter>
@@ -117,18 +136,20 @@ else
     private string NovoProdutoSku;
     private decimal NovoProdutoPreco;
     private int NovoProdutoQuantidadeEstoque;
-    private string NovoProdutoCategoria;
+    private int? NovoProdutoCategoria;
     
     private Modal modalCriarProduto;
     private Modal modalAtualizarProduto;
     private Modal modalExcluirProduto;
 
+    private List<Categoria> categorias;
     private List<Produto> produtos;
     private Produto produto;
 
     protected override async Task OnInitializedAsync()
     {
         produtos = await ProdutoService.GetProdutos();
+        categorias = await CategoriaService.GetCategorias();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -153,7 +174,7 @@ else
             Sku = NovoProdutoSku,
             PrecoUnitario = NovoProdutoPreco,
             QuantidadeProduto = NovoProdutoQuantidadeEstoque,
-            Categoria = NovoProdutoCategoria
+            CategoriaId = NovoProdutoCategoria
         };
 
         if (string.IsNullOrEmpty(produto.Nome) || string.IsNullOrEmpty(produto.Sku))
@@ -178,7 +199,7 @@ else
         NovoProdutoSku = null;
         NovoProdutoPreco = 0;
         NovoProdutoQuantidadeEstoque = 0;
-        NovoProdutoCategoria = null;
+        NovoProdutoCategoria = 0;
         modalCriarProduto.Hide();
         modalAtualizarProduto.Hide();
         modalExcluirProduto.Hide();
@@ -201,6 +222,7 @@ else
             produtos = await ProdutoService.GetProdutos();
             modalExcluirProduto.Hide();
         }
+        
     }
     
     private void OpenUpdateProdutoModal(Produto produto)
@@ -210,7 +232,7 @@ else
         NovoProdutoSku = produto.Sku;
         NovoProdutoPreco = produto.PrecoUnitario;
         NovoProdutoQuantidadeEstoque = produto.QuantidadeProduto;
-        NovoProdutoCategoria = produto.Categoria;
+        NovoProdutoCategoria = produto.CategoriaId;
         modalAtualizarProduto.Show();
     }
 
@@ -222,7 +244,7 @@ else
             produto.Sku = NovoProdutoSku;
             produto.PrecoUnitario = NovoProdutoPreco;
             produto.QuantidadeProduto = NovoProdutoQuantidadeEstoque;
-            produto.Categoria = NovoProdutoCategoria;
+            produto.CategoriaId = NovoProdutoCategoria;
             
             if (string.IsNullOrEmpty(produto.Nome) || string.IsNullOrEmpty(produto.Sku))
             {

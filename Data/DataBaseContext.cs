@@ -5,18 +5,16 @@ namespace ControleDeEstoque.Data;
 
 public class DataBaseContext : DbContext
 {
-        public DataBaseContext(DbContextOptions<DataBaseContext> options) : base(options)
-        {
-        }
+    public DataBaseContext(DbContextOptions<DataBaseContext> options) : base(options)
+    {
+    }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-                modelBuilder.Entity<Produto>().ToTable("Produto");
-                modelBuilder.Entity<Categoria>().ToTable("Categoria");
-        }
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Produto>().ToTable("Produtos");
+        modelBuilder.Entity<Categoria>().ToTable("Categoria");
+    }
 
-        public DbSet<Produto> Produtos { get; set; }
-        public DbSet<Categoria> Categorias { get; set; }
+    public DbSet<Categoria> Categorias { get; set; }
+    public DbSet<Produto> Produtos { get; set; }
 }
-
-
