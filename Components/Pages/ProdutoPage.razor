@@ -5,7 +5,6 @@
 @using Blazorise
 @inject IProdutoService ProdutoService
 @inject ICategoriaService CategoriaService
-@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 
@@ -131,6 +130,20 @@ else
     </ModalContent>
 </Modal>
 
+<Modal @ref="modalFaltaInformacao">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Alerta!</strong>
+        </ModalHeader>
+        <ModalBody>
+            <p>Por favor, preencha todos os campos obrigatórios.</p>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Danger" @onclick="FecharModalFaltaInformacao">Fechar</Button>
+        </ModalFooter>
+</ModalContent>
+</Modal>
+
 @code {
     private string NovoProdutoNome;
     private string NovoProdutoSku;
@@ -141,7 +154,8 @@ else
     private Modal modalCriarProduto;
     private Modal modalAtualizarProduto;
     private Modal modalExcluirProduto;
-
+    private Modal modalFaltaInformacao;
+    
     private List<Categoria> categorias;
     private List<Produto> produtos;
     private Produto produto;
@@ -179,11 +193,7 @@ else
 
         if (string.IsNullOrEmpty(produto.Nome) || string.IsNullOrEmpty(produto.Sku))
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Por favor, preencha todos os campos obrigatórios.");
-        }
-        else if (await ProdutoService.SkuExists(produto.Sku))
-        {
-            await JSRuntime.InvokeVoidAsync("alert", "Já existe um produto com esse código.");
+            modalFaltaInformacao.Show();
         }
         else
         {
@@ -210,7 +220,6 @@ else
         if (produto != null)
         {
             modalExcluirProduto.Show();
-            
         }
     }
     
@@ -222,7 +231,6 @@ else
             produtos = await ProdutoService.GetProdutos();
             modalExcluirProduto.Hide();
         }
-        
     }
     
     private void OpenUpdateProdutoModal(Produto produto)
@@ -248,7 +256,7 @@ else
             
             if (string.IsNullOrEmpty(produto.Nome) || string.IsNullOrEmpty(produto.Sku))
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Por favor, preencha todos os campos obrigatórios.");
+                modalFaltaInformacao.Show();          
             }
             else
             {
@@ -257,5 +265,10 @@ else
                 modalAtualizarProduto.Hide();
             }
         }
+    }
+    
+    private void FecharModalFaltaInformacao()
+    {
+        modalFaltaInformacao.Hide();
     }
 }
