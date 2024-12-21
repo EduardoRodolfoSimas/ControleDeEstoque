@@ -28,10 +28,18 @@
 
     <ItemGroup>
       <Content Remove="Migrations\**" />
+      <Content Remove="Components\Pages\Weather.razor" />
     </ItemGroup>
 
     <ItemGroup>
       <None Remove="Migrations\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Components\Modals\Categorias\AddCategoriaModal.razor" />
+      <_ContentIncludedByDefault Remove="Components\Modals\Categorias\UpdateCategoriaModal.razor" />
+      <_ContentIncludedByDefault Remove="Components\Modals\Produtos\AddProdutoModal.razor" />
+      <_ContentIncludedByDefault Remove="Components\Modals\Produtos\UpdateProdutoModal.razor" />
     </ItemGroup>
 
 </Project>

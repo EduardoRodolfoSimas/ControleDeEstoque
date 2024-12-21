@@ -2,7 +2,7 @@ using ControleDeEstoque.Data;
 using ControleDeEstoque.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace ControleDeEstoque.Services;
+namespace ControleDeEstoque.Services.Produtos;
 
 public class ProdutoService : IProdutoService
 {

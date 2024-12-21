@@ -1,6 +1,6 @@
-namespace ControleDeEstoque.Services;
-using ControleDeEstoque.Data;
-using ControleDeEstoque.Model;
+namespace ControleDeEstoque.Services.Categorias;
+using Data;
+using Model;
 using Microsoft.EntityFrameworkCore;
 
 public class CategoriaService : ICategoriaService
@@ -26,7 +26,6 @@ public class CategoriaService : ICategoriaService
         {
             return null;
         }
-
         _context.Categorias.Remove(categoria);
         await _context.SaveChangesAsync();
         return categoria;

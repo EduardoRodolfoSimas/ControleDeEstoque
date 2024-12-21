@@ -1,6 +1,8 @@
 using ControleDeEstoque.Components;
 using ControleDeEstoque.Data;
 using ControleDeEstoque.Services;
+using ControleDeEstoque.Services.Produtos;
+using ControleDeEstoque.Services.Categorias;
 using Microsoft.EntityFrameworkCore;
 using Blazorise;
 using Blazorise.Bootstrap5;

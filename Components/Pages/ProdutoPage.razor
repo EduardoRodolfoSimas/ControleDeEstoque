@@ -3,11 +3,10 @@
 @using ControleDeEstoque.Model
 @using ControleDeEstoque.Services
 @using Blazorise
+@using Microsoft.EntityFrameworkCore.Diagnostics
 @inject IProdutoService ProdutoService
 @inject ICategoriaService CategoriaService
 @rendermode InteractiveServer
-
-
 
 <h3>Tabela de produtos</h3>
 
@@ -34,9 +33,9 @@ else
             <tr>
                 <td>@produto.Sku</td>
                 <td>@produto.Nome</td>
-                <td>R$: @produto.PrecoUnitario</td>
+                <td>R$: @produto.PrecoUnitario.ToString("F2")</td>
                 <td>@produto.QuantidadeProduto</td>
-                <td>@produto.CategoriaId</td>
+                <td>@categorias.FirstOrDefault(c => c.Id == produto.CategoriaId)?.Nome</td>
                 <td>
                     <button class="btn btn-warning" @onclick="() => OpenUpdateProdutoModal(produto)">Atualizar</button>
                     <button class="btn btn-danger" @onclick="() => OptionDeleteProdutoButton(produto)">Deletar</button>
@@ -62,21 +61,29 @@ else
                 <input type="text" class="form-control" id="ProdutoPreco" @bind="NovoProdutoPreco" placeholder="Insira o preço unitário"/>
                 <Label for="ProdutoQuantidadeEstoque" class="form-label">Quantidade em estoque</Label>
                 <input type="text" class="form-control" id="ProdutoQuantidadeEstoque" @bind="NovoProdutoQuantidadeEstoque" placeholder="Insira a quantidade total em estoque" />
+                <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
                 <Dropdown>
-                    <DropdownToggle Color="Color.Default" Size="Size.Medium">
-                        Selecionar a categoria
+                    <DropdownToggle Color="Color.Default" Size="Size.Medium" >
+                        @if (NovoProdutoCategoria.HasValue)
+                        {
+                            @categorias.FirstOrDefault(c => c.Id == NovoProdutoCategoria)?.Nome;
+                        }
+                        else
+                        {
+                            <text>Selecionar a categoria</text>
+                        }
                     </DropdownToggle>
                     <DropdownMenu>
                         @if (categorias == null)
-                        { 
+                        {
                             <DropdownItem disabled>Nenhuma categoria cadastrada</DropdownItem>
                         }
-                        else 
+                        else
                         {
                             foreach(var categoria in categorias)
                             {
                                 <DropdownItem @onclick="() => NovoProdutoCategoria = categoria.Id">@categoria.Nome</DropdownItem>
-                            } 
+                            }
                         }
                     </DropdownMenu>
                 </Dropdown>
@@ -105,7 +112,31 @@ else
                 <Label for="ProdutoQuantidadeEstoque" class="form-label">Quantidade em estoque</Label>
                 <input type="text" class="form-control" id="ProdutoQuantidadeEstoque" @bind="NovoProdutoQuantidadeEstoque"/>
                 <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
-                <input type="text" class="form-control" id="ProdutoCategoria" @bind="NovoProdutoCategoria"/>
+                <Dropdown>
+                    <DropdownToggle Color="Color.Default" Size="Size.Medium" >
+                        @if (NovoProdutoCategoria.HasValue)
+                        {
+                            @categorias.FirstOrDefault(c => c.Id == NovoProdutoCategoria)?.Nome;
+                        }
+                        else
+                        {
+                            <text>Selecionar a categoria</text>
+                        }
+                    </DropdownToggle>
+                    <DropdownMenu>
+                        @if (categorias == null)
+                        {
+                            <DropdownItem disabled>Nenhuma categoria cadastrada</DropdownItem>
+                        }
+                        else
+                        {
+                            foreach(var categoria in categorias)
+                            {
+                                <DropdownItem @onclick="() => NovoProdutoCategoria = categoria.Id">@categoria.Nome</DropdownItem>
+                            }
+                        }
+                    </DropdownMenu>
+                </Dropdown>
             </Field>
         </ModalBody>
         <ModalFooter>
@@ -124,7 +155,7 @@ else
             <p>Tem certeza que deseja excluir o produto permanentemente?</p>
         </ModalBody>
         <ModalFooter>
-            <Button Color="Color.Success" @onclick="() => DeleteProduto(produto)">Sim</Button>
+            <Button Color="Color.Success" @onclick="DeleteProduto">Sim</Button>
             <Button Color="Color.Danger" @onclick="CancelProdutoButton">Não</Button>
         </ModalFooter>
     </ModalContent>
@@ -159,7 +190,7 @@ else
     private List<Categoria> categorias;
     private List<Produto> produtos;
     private Produto produto;
-
+    
     protected override async Task OnInitializedAsync()
     {
         produtos = await ProdutoService.GetProdutos();
@@ -200,30 +231,28 @@ else
             await ProdutoService.AddProduto(produto);
             produtos = await ProdutoService.GetProdutos();
             modalCriarProduto.Hide();
-        }
-    }
-
-    private void CancelProdutoButton()
-    {
-        NovoProdutoNome = null;
-        NovoProdutoSku = null;
-        NovoProdutoPreco = 0;
-        NovoProdutoQuantidadeEstoque = 0;
-        NovoProdutoCategoria = 0;
-        modalCriarProduto.Hide();
-        modalAtualizarProduto.Hide();
-        modalExcluirProduto.Hide();
-    }
-
-    private void OptionDeleteProdutoButton (Produto produto)
-    {
-        if (produto != null)
-        {
-            modalExcluirProduto.Show();
+            ClearProdutoForm();
         }
     }
     
-    private async Task DeleteProduto(Produto produto)
+    private void CancelProdutoButton()
+    {
+        modalCriarProduto.Hide();
+        modalAtualizarProduto.Hide();
+        modalExcluirProduto.Hide();
+        ClearProdutoForm();
+    }
+
+    private void OptionDeleteProdutoButton(Produto produto)
+    {
+        if (produto != null)
+        {
+            this.produto = produto;  
+            modalExcluirProduto.Show();
+        }
+    }
+
+    private async Task DeleteProduto()
     {
         if (produto != null)
         {
@@ -232,6 +261,7 @@ else
             modalExcluirProduto.Hide();
         }
     }
+
     
     private void OpenUpdateProdutoModal(Produto produto)
     {
@@ -263,8 +293,18 @@ else
                 await ProdutoService.UpdateProduto(produto);
                 produtos = await ProdutoService.GetProdutos();
                 modalAtualizarProduto.Hide();
+                ClearProdutoForm();
             }
         }
+    }
+    
+    private void ClearProdutoForm()
+    {
+        NovoProdutoNome = null;
+        NovoProdutoSku = null;
+        NovoProdutoPreco = 0;
+        NovoProdutoQuantidadeEstoque = 0;
+        NovoProdutoCategoria = null;
     }
     
     private void FecharModalFaltaInformacao()
