@@ -13,8 +13,10 @@ public class DataBaseContext : DbContext
     {
         modelBuilder.Entity<Produto>().ToTable("Produtos");
         modelBuilder.Entity<Categoria>().ToTable("Categoria");
+        modelBuilder.Entity<Venda>().ToTable("Vendas");
     }
 
     public DbSet<Categoria> Categorias { get; set; }
     public DbSet<Produto> Produtos { get; set; }
+    public DbSet<Venda> Vendas { get; set; }
 }

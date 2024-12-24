@@ -4,6 +4,7 @@
 @inject ICategoriaService CategoriaService
 @rendermode InteractiveServer
 @using Blazorise
+@using Microsoft.AspNetCore.Mvc
 
 <h3>Categorias</h3>
 
@@ -154,11 +155,9 @@ else
 
     private void OptionDeleteCategoriaButton(Categoria categoria)
     {
-        if (categoria != null)
-        {
+
             categoriaSelecionada = categoria;
             modalDeletarCategoria.Show();
-        }
 
     }
 

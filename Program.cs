@@ -3,6 +3,7 @@ using ControleDeEstoque.Data;
 using ControleDeEstoque.Services;
 using ControleDeEstoque.Services.Produtos;
 using ControleDeEstoque.Services.Categorias;
+using ControleDeEstoque.Services.Vendas;
 using Microsoft.EntityFrameworkCore;
 using Blazorise;
 using Blazorise.Bootstrap5;
@@ -19,6 +20,7 @@ builder.Services.AddDbContext<DataBaseContext>(options =>
 
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();   
+builder.Services.AddScoped<IVendasService, VendaService>();
 
 builder.Services.AddBlazorise(options =>
 {

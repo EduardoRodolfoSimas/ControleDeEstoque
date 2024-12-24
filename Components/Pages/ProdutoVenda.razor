@@ -1,6 +1,168 @@
 @page "/vendas"
 @using ControleDeEstoque.Model
+@using ControleDeEstoque.Services
+@using Blazorise
+@using ControleDeEstoque.Services.Vendas
+@inject IProdutoService ProdutoService
+@inject IVendasService VendaService
+@rendermode InteractiveServer
 
-<h3>Registra venda</h3>
+@if (produtos == null || vendas == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <h4>Registrar Venda</h4>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Produto</th>
+            <th>Quantidade Vendida</th>
+            <th>Preço Unitário</th>
+            <th>Data da Venda</th>
+            <th>Forma de pagamento</th>
+            <th>SubTotal</th>
+            <th><button class="btn btn-primary" @onclick="OpenProdutoVenda">Registrar venda</button></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var venda in vendas)
+        {
+            <tr>
+                <td>@venda.Produto.Nome</td>
+                <td>@venda.QuantidadeVendida</td>
+                <td>R$: @venda.PrecoUnitario.ToString("F2")</td>
+                <td>@venda.DataVenda.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>R$: @(venda.PrecoUnitario * venda.QuantidadeVendida)</td>
+            </tr>
+        }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5"><strong>Total</strong></td>
+                <td><strong>R$: @(vendas.Sum(v => v.PrecoUnitario * v.QuantidadeVendida).ToString("F2"))</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+}
 
- 
+<Modal @ref="modalProdutoVenda">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Registrar venda</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Label for="ProdutoSku" class="form-label">Código</Label>
+            <div class="input-group">
+                <input type="search" class="form-control" @bind="ProdutoSku" placeholder="Insira o código do produto"/>
+                <div class="input-group-append">
+                    <button class="form-control" type="submit" @onclick="teste2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <Label for="ProdutoNome" class="form-label">Nome</Label>
+            <input type="text" class="form-control" id="ProdutoNome" @bind="ProdutoNome" disabled="disabled"/>
+            <Label for="QuantidadeVendida" class="form-label">Quantidade</Label>
+            <input type="text" class="form-control" id="QuantidadeVendida" @bind="QuantidadeVendida" placeholder="Insira a quantidade vendida"/>
+            <Label for="FormaPagamento" class="form-label">Forma de pagamento</Label>
+            <Dropdown>
+                <DropdownToggle Color="Color.Default" Size="Size.Medium" >Selecione</DropdownToggle>
+                <DropdownMenu>
+                    <DropdownItem>Crédito</DropdownItem>
+                    <DropdownItem>Débito</DropdownItem>
+                    <DropdownItem>Dinheiro</DropdownItem>
+                    <DropdownItem>Pix</DropdownItem>
+                </DropdownMenu>
+            </Dropdown>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="InsertProdutoVenda">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelProdutoVenda">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    private string ProdutoSku;
+    private string ProdutoNome;
+    
+    private int QuantidadeVendida;
+    private List<Produto> produtos;
+    private List<Venda> vendas;  
+    private Modal modalProdutoVenda;
+    private Produto produto;
+
+    protected override async Task OnInitializedAsync()
+    {
+        produtos = await ProdutoService.GetProdutos();
+        vendas = await VendaService.ObterVendas();  
+    }
+
+    private void OpenProdutoVenda()
+    {
+        modalProdutoVenda.Show();
+    }
+
+    private void CancelProdutoVenda()
+    {
+        modalProdutoVenda.Hide();
+    }
+
+    private async Task InsertProdutoVenda()
+    {
+        if (produto != null && !string.IsNullOrEmpty(ProdutoSku) && QuantidadeVendida > 0)
+        {
+            if (produto.QuantidadeProduto >= QuantidadeVendida)
+            {
+                var venda = new Venda
+                {
+                    ProdutoId = produto.Id,
+                    DataVenda = DateTime.Now,
+                    PrecoUnitario = produto.PrecoUnitario,
+                    QuantidadeVendida = QuantidadeVendida
+                };
+
+                await VendaService.RegistrarVenda(venda);  
+                
+                await AtualizarProdutos();
+                vendas = await VendaService.ObterVendas();  
+
+                modalProdutoVenda.Hide();
+            }
+            else
+            {
+                ProdutoSku = "Estoque insuficiente para essa venda.";
+            }
+        }
+        else
+        {
+            ProdutoSku = "Preencha os dados corretamente.";
+        }
+    }
+
+    private async Task teste2()
+    {
+        if (produtos != null)
+        {
+            produto = produtos.FirstOrDefault(p => p.Sku == ProdutoSku);
+            if (produto != null)
+            {
+                ProdutoNome = produto.Nome;
+            }
+            else
+            {
+                ProdutoSku = "Produto não encontrado";
+            }
+        }
+    }
+
+    private async Task AtualizarProdutos()
+    {
+        produtos = await ProdutoService.GetProdutos();  
+        StateHasChanged();  
+    }
+}

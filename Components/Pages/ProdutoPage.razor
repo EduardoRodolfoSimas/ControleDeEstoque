@@ -245,21 +245,15 @@ else
 
     private void OptionDeleteProdutoButton(Produto produto)
     {
-        if (produto != null)
-        {
             this.produto = produto;  
             modalExcluirProduto.Show();
-        }
     }
 
     private async Task DeleteProduto()
     {
-        if (produto != null)
-        {
             await ProdutoService.DeleteProduto(produto.Id);
             produtos = await ProdutoService.GetProdutos();
             modalExcluirProduto.Hide();
-        }
     }
 
     
@@ -276,8 +270,7 @@ else
 
     private async Task UpdateProdutoButton(Produto produto)
     {
-        if (produto != null)
-        {
+
             produto.Nome = NovoProdutoNome;
             produto.Sku = NovoProdutoSku;
             produto.PrecoUnitario = NovoProdutoPreco;
@@ -295,7 +288,6 @@ else
                 modalAtualizarProduto.Hide();
                 ClearProdutoForm();
             }
-        }
     }
     
     private void ClearProdutoForm()
