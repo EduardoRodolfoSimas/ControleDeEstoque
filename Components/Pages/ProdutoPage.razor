@@ -175,6 +175,20 @@ else
     </ModalContent>
 </Modal>
 
+<Modal @ref="modalSkuJaCadastrado">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Alerta!</strong>
+        </ModalHeader>
+        <ModalBody>
+            <p>O código deste produto já está cadastrado.</p>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Danger" @onclick="FecharModalFaltaInformacao">Fechar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
 @code {
     private string NovoProdutoNome;
     private string NovoProdutoSku;
@@ -186,7 +200,8 @@ else
     private Modal modalAtualizarProduto;
     private Modal modalExcluirProduto;
     private Modal modalFaltaInformacao;
-
+    private Modal modalSkuJaCadastrado;
+    
     private List<Categoria> categorias;
     private List<Produto> produtos;
     private Produto produto;
@@ -221,7 +236,12 @@ else
             QuantidadeProduto = NovoProdutoQuantidadeEstoque,
             CategoriaId = NovoProdutoCategoria
         };
-
+        while (produtos.Any(p => p.Sku == produto.Sku))
+        {
+            modalSkuJaCadastrado.Show();
+            return;
+        }
+        
         if (string.IsNullOrEmpty(produto.Nome) || string.IsNullOrEmpty(produto.Sku))
         {
             modalFaltaInformacao.Show();
@@ -302,5 +322,6 @@ else
     private void FecharModalFaltaInformacao()
     {
         modalFaltaInformacao.Hide();
+        modalSkuJaCadastrado.Hide();    
     }
 }
