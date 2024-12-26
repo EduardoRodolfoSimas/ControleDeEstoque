@@ -34,6 +34,7 @@ else
                 <td>@venda.QuantidadeVendida</td>
                 <td>R$: @venda.PrecoUnitario.ToString("F2")</td>
                 <td>@venda.DataVenda.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@venda.FormaPagamento</td>
                 <td>R$: @(venda.PrecoUnitario * venda.QuantidadeVendida)</td>
             </tr>
         }
@@ -57,7 +58,7 @@ else
             <div class="input-group">
                 <input type="search" class="form-control" @bind="ProdutoSku" placeholder="Insira o código do produto"/>
                 <div class="input-group-append">
-                    <button class="form-control" type="submit" @onclick="teste2">
+                    <button class="form-control" type="submit" @onclick="PesquisarVendaProduto">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
                             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
                         </svg>
@@ -72,10 +73,10 @@ else
             <Dropdown>
                 <DropdownToggle Color="Color.Default" Size="Size.Medium" >Selecione</DropdownToggle>
                 <DropdownMenu>
-                    <DropdownItem>Crédito</DropdownItem>
-                    <DropdownItem>Débito</DropdownItem>
-                    <DropdownItem>Dinheiro</DropdownItem>
-                    <DropdownItem>Pix</DropdownItem>
+                    <DropdownItem @onclick='() => FormaPagamento = "Credito"'>Crédito</DropdownItem>
+                    <DropdownItem @onclick='() => FormaPagamento = "Debito"'>Débito</DropdownItem>
+                    <DropdownItem @onclick='() => FormaPagamento = "Dinheiro"'>Dinheiro</DropdownItem>
+                    <DropdownItem @onclick='() => FormaPagamento = "Pix"'>Pix</DropdownItem>
                 </DropdownMenu>
             </Dropdown>
         </ModalBody>
@@ -89,6 +90,7 @@ else
 @code {
     private string ProdutoSku;
     private string ProdutoNome;
+    private string FormaPagamento;
     
     private int QuantidadeVendida;
     private List<Produto> produtos;
@@ -123,7 +125,8 @@ else
                     ProdutoId = produto.Id,
                     DataVenda = DateTime.Now,
                     PrecoUnitario = produto.PrecoUnitario,
-                    QuantidadeVendida = QuantidadeVendida
+                    QuantidadeVendida = QuantidadeVendida,
+                    FormaPagamento = FormaPagamento
                 };
 
                 await VendaService.RegistrarVenda(venda);  
@@ -144,7 +147,7 @@ else
         }
     }
 
-    private async Task teste2()
+    private async Task PesquisarVendaProduto()
     {
         if (produtos != null)
         {

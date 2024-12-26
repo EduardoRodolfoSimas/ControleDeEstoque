@@ -172,7 +172,7 @@ else
         <ModalFooter>
             <Button Color="Color.Danger" @onclick="FecharModalFaltaInformacao">Fechar</Button>
         </ModalFooter>
-</ModalContent>
+    </ModalContent>
 </Modal>
 
 @code {
@@ -181,16 +181,16 @@ else
     private decimal NovoProdutoPreco;
     private int NovoProdutoQuantidadeEstoque;
     private int? NovoProdutoCategoria;
-    
+
     private Modal modalCriarProduto;
     private Modal modalAtualizarProduto;
     private Modal modalExcluirProduto;
     private Modal modalFaltaInformacao;
-    
+
     private List<Categoria> categorias;
     private List<Produto> produtos;
     private Produto produto;
-    
+
     protected override async Task OnInitializedAsync()
     {
         produtos = await ProdutoService.GetProdutos();
@@ -234,7 +234,7 @@ else
             ClearProdutoForm();
         }
     }
-    
+
     private void CancelProdutoButton()
     {
         modalCriarProduto.Hide();
@@ -245,18 +245,18 @@ else
 
     private void OptionDeleteProdutoButton(Produto produto)
     {
-            this.produto = produto;  
-            modalExcluirProduto.Show();
+        this.produto = produto;
+        modalExcluirProduto.Show();
     }
 
     private async Task DeleteProduto()
     {
-            await ProdutoService.DeleteProduto(produto.Id);
-            produtos = await ProdutoService.GetProdutos();
-            modalExcluirProduto.Hide();
+        await ProdutoService.DeleteProduto(produto.Id);
+        produtos = await ProdutoService.GetProdutos();
+        modalExcluirProduto.Hide();
     }
 
-    
+
     private void OpenUpdateProdutoModal(Produto produto)
     {
         this.produto = produto;
@@ -271,25 +271,25 @@ else
     private async Task UpdateProdutoButton(Produto produto)
     {
 
-            produto.Nome = NovoProdutoNome;
-            produto.Sku = NovoProdutoSku;
-            produto.PrecoUnitario = NovoProdutoPreco;
-            produto.QuantidadeProduto = NovoProdutoQuantidadeEstoque;
-            produto.CategoriaId = NovoProdutoCategoria;
-            
-            if (string.IsNullOrEmpty(produto.Nome) || string.IsNullOrEmpty(produto.Sku))
-            {
-                modalFaltaInformacao.Show();          
-            }
-            else
-            {
-                await ProdutoService.UpdateProduto(produto);
-                produtos = await ProdutoService.GetProdutos();
-                modalAtualizarProduto.Hide();
-                ClearProdutoForm();
-            }
+        produto.Nome = NovoProdutoNome;
+        produto.Sku = NovoProdutoSku;
+        produto.PrecoUnitario = NovoProdutoPreco;
+        produto.QuantidadeProduto = NovoProdutoQuantidadeEstoque;
+        produto.CategoriaId = NovoProdutoCategoria;
+
+        if (string.IsNullOrEmpty(produto.Nome) || string.IsNullOrEmpty(produto.Sku))
+        {
+            modalFaltaInformacao.Show();
+        }
+        else
+        {
+            await ProdutoService.UpdateProduto(produto);
+            produtos = await ProdutoService.GetProdutos();
+            modalAtualizarProduto.Hide();
+            ClearProdutoForm();
+        }
     }
-    
+
     private void ClearProdutoForm()
     {
         NovoProdutoNome = null;
@@ -298,7 +298,7 @@ else
         NovoProdutoQuantidadeEstoque = 0;
         NovoProdutoCategoria = null;
     }
-    
+
     private void FecharModalFaltaInformacao()
     {
         modalFaltaInformacao.Hide();
