@@ -2,87 +2,79 @@
 @using ControleDeEstoque.Model
 @using ControleDeEstoque.Services
 @using Blazorise
+@using Blazorise.DataGrid
 @using ControleDeEstoque.Services.Vendas
 @inject IProdutoService ProdutoService
 @inject IVendasService VendaService
 @rendermode InteractiveServer
 
-@if (produtos == null)
-{
-    <p><em>Carregando...</em></p>
-}
-else
-{
-    <h3>Registro de Vendas</h3>
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Produto</th>
-            <th>Quantidade Vendida</th>
-            <th>Preço Unitário</th>
-            <th>Data da Venda</th>
-            <th>Forma de pagamento</th>
-            <th>SubTotal</th>
-            <th><button class="btn btn-primary" @onclick="OpenProdutoVenda">Registrar venda</button></th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var venda in vendas)
-        {
-            <tr>
-                <td>@venda.Produto.Nome</td>
-                <td>@venda.QuantidadeVendida</td>
-                <td>R$: @venda.PrecoUnitario.ToString("F2")</td>
-                <td>@venda.DataVenda.ToString("dd/MM/yyyy HH:mm")</td>
-                <td>@venda.FormaPagamento</td>
-                <td>R$: @(venda.PrecoUnitario * venda.QuantidadeVendida)</td>
-            </tr>
-        }
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="5"><strong>Total</strong></td>
-                <td><strong>R$: @(vendas.Sum(v => v.PrecoUnitario * v.QuantidadeVendida).ToString("F2"))</strong></td>
-            </tr>
-        </tfoot>
-    </table>
-}
+<Row>
+    <Column>
+        <Card Margin="Margin.Is4.OnY">
+            <CardHeader>
+                <CardTitle>Registro de Vendas</CardTitle>
+            </CardHeader>
+            <CardBody>
+                    <DataGrid TItem="Venda"
+                              Data="vendas"
+                              Responsive
+                              ShowPager
+                              Editable
+                              EditMode="DataGridEditMode.Popup">
+                        <DataGridColumns>
+                            <DataGridColumn TItem="Venda" Field="@nameof(Venda.ProdutoNome)" Caption="Produto" />
+                            <DataGridColumn TItem="Venda" Field="@nameof(Venda.CategoriaNome)" Caption="Categoria" />
+                            <DataGridColumn TItem="Venda" Field="@nameof(Venda.TamanhoNome)" Caption="Tamanho" />
+                            <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.QuantidadeVendida)" Caption="Quantidade Vendida" Editable />
+                            <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.PrecoUnitario)" Caption="Preço Unitário" DisplayFormat="{0:C}" />
+                            <DataGridColumn TItem="Venda" Field="@nameof(Venda.DataVenda)" Caption="Data da Venda" DisplayFormat="{0:dd/MM/yyyy HH:mm}" />
+                            <DataGridColumn TItem="Venda" Field="@nameof(Venda.FormaPagamento)" Caption="Forma de Pagamento" />
+                            <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}" />
+                        </DataGridColumns>
+                        <ButtonRowTemplate>
+                            <Button Color="Color.Success" Clicked="RegistrarVenda">Registrar Venda</Button>
+                            <Button Color="Color.Warning" Clicked="AtualizarProdutos">Atualizar Venda</Button>
+                            <!-- TODO: Implementar a devolução pro estoque -->
+                            <Button Color="Color.Danger" Clicked="ExcluirVenda">Excluir</Button> 
+                        </ButtonRowTemplate>
+                    </DataGrid>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
 
-<Modal @ref="modalProdutoVenda">
+<Modal @ref="ModalRegistrarVenda">
     <ModalContent Size="ModalSize.Default" Centered="true">
         <ModalHeader>
             <strong>Registrar venda</strong>
         </ModalHeader>
         <ModalBody>
-            <Label for="ProdutoSku" class="form-label">Código</Label>
-            <div class="input-group">
-                <input type="search" class="form-control" @bind="ProdutoSku" placeholder="Insira o código do produto"/>
-                <div class="input-group-append">
-                    <button class="form-control" type="submit" @onclick="PesquisarVendaProduto">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <Label for="ProdutoNome" class="form-label">Nome</Label>
-            <input type="text" class="form-control" id="ProdutoNome" @bind="ProdutoNome" disabled="disabled"/>
-            <Label for="QuantidadeVendida" class="form-label">Quantidade</Label>
-            <input type="text" class="form-control" id="QuantidadeVendida" @bind="QuantidadeVendida" placeholder="Insira a quantidade vendida"/>
-            <Label for="FormaPagamento" class="form-label">Forma de pagamento</Label>
-            <Dropdown>
-                <DropdownToggle Color="Color.Default" Size="Size.Medium" >Selecione</DropdownToggle>
-                <DropdownMenu>
-                    <DropdownItem @onclick='() => FormaPagamento = "Credito"'>Crédito</DropdownItem>
-                    <DropdownItem @onclick='() => FormaPagamento = "Debito"'>Débito</DropdownItem>
-                    <DropdownItem @onclick='() => FormaPagamento = "Dinheiro"'>Dinheiro</DropdownItem>
-                    <DropdownItem @onclick='() => FormaPagamento = "Pix"'>Pix</DropdownItem>
-                </DropdownMenu>
-            </Dropdown>
+            <Field>
+                <FieldLabel>Código do Produto</FieldLabel>
+                <TextEdit @bind-Text="ProdutoSku" Placeholder="Insira o código do produto" />
+                <Button Clicked="PesquisarVendaProduto">Pesquisar</Button>
+            </Field>
+            <Field>
+                <FieldLabel>Nome do Produto</FieldLabel>
+                <TextEdit @bind-Text="ProdutoNome" Disabled />
+            </Field>
+            <Field>
+                <FieldLabel>Quantidade Vendida</FieldLabel>
+                <NumericEdit TValue="int" @bind-Value="QuantidadeVendida" Placeholder="Quantidade" />
+            </Field>
+            <Field>
+                <FieldLabel>Forma de Pagamento</FieldLabel>
+                <Select @bind-SelectedValue="FormaPagamentoString">
+                    <SelectItem Value="@(FormaPagamento.Credito)">Crédito</SelectItem>
+                    <SelectItem Value="@(FormaPagamento.Debito)">Débito</SelectItem>
+                    <SelectItem Value="@(FormaPagamento.Dinheiro)">Dinheiro</SelectItem>
+                    <SelectItem Value="@(FormaPagamento.Pix)">Pix</SelectItem>
+                </Select>
+            </Field>
         </ModalBody>
         <ModalFooter>
-            <Button Color="Color.Success" @onclick="InsertProdutoVenda">Salvar</Button>
-            <Button Color="Color.Danger" @onclick="CancelProdutoVenda">Cancelar</Button>
+            <Button Color="Color.Success" Clicked="() => AlternarModalRegistrarVenda(true)">Salvar</Button>
+            <Button Color="Color.Danger" Clicked="() => AlternarModalRegistrarVenda(false)">Cancelar</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
@@ -90,61 +82,74 @@ else
 @code {
     private string ProdutoSku;
     private string ProdutoNome;
-    private string FormaPagamento;
-    
+    private string FormaPagamentoString;
+    private FormaPagamento FormaPagamentoEnum;
     private int QuantidadeVendida;
     private List<Produto> produtos;
-    private List<Venda> vendas;  
-    private Modal modalProdutoVenda;
+    private List<Venda> vendas;
+    private Modal ModalRegistrarVenda;
     private Produto produto;
 
     protected override async Task OnInitializedAsync()
     {
-        produtos = await ProdutoService.GetProdutos();
-        vendas = await VendaService.ObterVendas();  
+        produtos = await ProdutoService.GetProdutos() ?? new List<Produto>();
+        vendas = await VendaService.ObterVendas() ?? new List<Venda>();
+    }
+    
+    private async Task RegistrarVenda()
+    {
+        ModalRegistrarVenda.Show();
     }
 
-    private void OpenProdutoVenda()
+    private async Task AlternarModalRegistrarVenda(bool salvar)
     {
-        modalProdutoVenda.Show();
-    }
-
-    private void CancelProdutoVenda()
-    {
-        modalProdutoVenda.Hide();
-    }
-
-    private async Task InsertProdutoVenda()
-    {
-        if (produto != null && !string.IsNullOrEmpty(ProdutoSku) && QuantidadeVendida > 0)
+        if (salvar)
         {
-            if (produto.QuantidadeProduto >= QuantidadeVendida)
+            if (produto != null && !string.IsNullOrEmpty(ProdutoSku) && QuantidadeVendida > 0)
             {
-                var venda = new Venda
+                if (produto.QuantidadeProduto >= QuantidadeVendida)
                 {
-                    ProdutoId = produto.Id,
-                    DataVenda = DateTime.Now,
-                    PrecoUnitario = produto.PrecoUnitario,
-                    QuantidadeVendida = QuantidadeVendida,
-                    FormaPagamento = FormaPagamento
-                };
+                    var venda = new Venda
+                    {
+                        ProdutoSku = produto.Sku,
+                        ProdutoNome = produto.Nome,
+                        CategoriaNome = produto.Categoria?.Nome,
+                        TamanhoNome = produto.Tamanho?.Nome,
+                        DataVenda = DateTime.Now,
+                        PrecoUnitario = produto.PrecoUnitario,
+                        QuantidadeVendida = QuantidadeVendida,
+                        FormaPagamento = FormaPagamentoString
+                    };
 
-                await VendaService.RegistrarVenda(venda);  
-                
-                await AtualizarProdutos();
-                vendas = await VendaService.ObterVendas();  
+                    await VendaService.RegistrarVenda(venda);
+                    await AtualizarProdutos();
+                    vendas = await VendaService.ObterVendas();
 
-                modalProdutoVenda.Hide();
+                    LimparFormulario();
+                    ModalRegistrarVenda.Hide();
+                }
+                else
+                {
+                    ProdutoSku = "Estoque insuficiente para essa venda.";
+                }
             }
             else
             {
-                ProdutoSku = "Estoque insuficiente para essa venda.";
+                ProdutoSku = "Preencha os dados corretamente.";
             }
         }
         else
         {
-            ProdutoSku = "Preencha os dados corretamente.";
+            LimparFormulario();
+            ModalRegistrarVenda.Hide();
         }
+    }
+    private void LimparFormulario()
+    {
+        ProdutoSku = string.Empty;
+        QuantidadeVendida = 0;
+        FormaPagamentoString = string.Empty;
+        ProdutoNome = string.Empty;
     }
 
     private async Task PesquisarVendaProduto()
@@ -163,9 +168,15 @@ else
         }
     }
 
+    private async Task ExcluirVenda()
+    {
+        await VendaService.ExcluirVenda();
+        await AtualizarProdutos();
+    }
+
     private async Task AtualizarProdutos()
     {
-        produtos = await ProdutoService.GetProdutos();  
-        StateHasChanged();  
+        produtos = await ProdutoService.GetProdutos();
+        StateHasChanged();
     }
 }

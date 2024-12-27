@@ -20,7 +20,7 @@ public class VendaService : IVendasService
         _context.Vendas.Add(venda);
         await _context.SaveChangesAsync();
         
-        var produto = await _context.Produtos.FindAsync(venda.ProdutoId);
+        var produto = await _context.Produtos.FindAsync(venda.ProdutoNome);
         if (produto != null)
         {
             produto.QuantidadeProduto -= venda.QuantidadeVendida;
@@ -32,5 +32,16 @@ public class VendaService : IVendasService
     public async Task<List<Venda>> ObterVendas()
     { 
         return await _context.Vendas.ToListAsync();;
+    }
+    
+    public async Task<List<Venda>> ExcluirVenda()
+    {
+        var venda = await _context.Vendas.FindAsync(1);
+        if (venda != null)
+        {
+            _context.Vendas.Remove(venda);
+            await _context.SaveChangesAsync();
+        }
+        return await ObterVendas();
     }
 }

@@ -150,10 +150,6 @@ else
                 <input type="text" class="form-control" id="ProdutoNome" @bind="NovoProdutoNome" placeholder="Insira o nome do produto"/>
                 <Label for="ProdutoSku" class="form-label">Código</Label>
                 <input type="text" class="form-control" id="ProdutoSku" @bind="NovoProdutoSku" placeholder="Insira o código do produto"/>
-                <Label for="ProdutoPreco" class="form-label">Preço Unitário</Label>
-                <input type="text" class="form-control" id="ProdutoPreco" @bind="NovoProdutoPreco"/>
-                <Label for="ProdutoQuantidadeEstoque" class="form-label">Quantidade em estoque</Label>
-                <input type="text" class="form-control" id="ProdutoQuantidadeEstoque" @bind="NovoProdutoQuantidadeEstoque"/>
                 <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
                 <Dropdown>
                     <DropdownToggle Color="Color.Default" Size="Size.Medium" >
@@ -180,6 +176,36 @@ else
                         }
                     </DropdownMenu>
                 </Dropdown>
+                <Label for="ProdutoTamanho" class="form-label">Tamanho</Label>
+                <Dropdown>
+                    <DropdownToggle Color="Color.Default" Size="Size.Medium">
+                        @if (NovoProdutoTamanho.HasValue)
+                        {
+                            @tamanhos.FirstOrDefault(t => t.Id == NovoProdutoTamanho).Nome;
+                        }
+                        else
+                        {
+                            <text>Selecionar o tamanho</text>
+                        }
+                    </DropdownToggle>
+                    <DropdownMenu>
+                        @if (tamanhos == null)
+                        {
+                            <DropdownItem disabled>Nenhum tamanho cadastrado</DropdownItem>
+                        }
+                        else
+                        {
+                            foreach(var tamanho in tamanhos)
+                            {
+                                <DropdownItem @onclick="() => NovoProdutoTamanho = tamanho.Id">@tamanho.Nome</DropdownItem>
+                            }
+                        }
+                    </DropdownMenu>
+                </Dropdown>
+                <Label for="ProdutoPreco" class="form-label">Preço Unitário</Label>
+                <input type="text" class="form-control" id="ProdutoPreco" @bind="NovoProdutoPreco"/>
+                <Label for="ProdutoQuantidadeEstoque" class="form-label">Quantidade em estoque</Label>
+                <input type="text" class="form-control" id="ProdutoQuantidadeEstoque" @bind="NovoProdutoQuantidadeEstoque"/>
             </Field>
         </ModalBody>
         <ModalFooter>
@@ -283,7 +309,8 @@ else
             Sku = NovoProdutoSku,
             PrecoUnitario = NovoProdutoPreco,
             QuantidadeProduto = NovoProdutoQuantidadeEstoque,
-            CategoriaId = NovoProdutoCategoria
+            CategoriaId = NovoProdutoCategoria,
+            TamanhoId = NovoProdutoTamanho
         };
         if (produtos.Any(p => p.Sku == produto.Sku))
         {
@@ -334,6 +361,7 @@ else
         NovoProdutoPreco = produto.PrecoUnitario;
         NovoProdutoQuantidadeEstoque = produto.QuantidadeProduto;
         NovoProdutoCategoria = produto.CategoriaId;
+        NovoProdutoTamanho = produto.TamanhoId;
         modalAtualizarProduto.Show();
     }
 
@@ -345,6 +373,7 @@ else
         produto.PrecoUnitario = NovoProdutoPreco;
         produto.QuantidadeProduto = NovoProdutoQuantidadeEstoque;
         produto.CategoriaId = NovoProdutoCategoria;
+        produto.TamanhoId = NovoProdutoTamanho;
 
         if (string.IsNullOrEmpty(produto.Nome) || string.IsNullOrEmpty(produto.Sku))
         {
@@ -366,6 +395,7 @@ else
         NovoProdutoPreco = 0;
         NovoProdutoQuantidadeEstoque = 0;
         NovoProdutoCategoria = null;
+        NovoProdutoTamanho = null;
     }
 
     private void FecharModalFaltaInformacao()

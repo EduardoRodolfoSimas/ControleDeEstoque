@@ -18,19 +18,19 @@ public class TamanhoService : ITamanhoService
         return await _context.Tamanhos.ToListAsync();
     }
 
-    public async Task<Tamanho> GetTamanho(int id)
-    {
-        return await _context.Tamanhos.FindAsync(id);
-    }
-
     public async Task<Tamanho> AddTamanho(Tamanho tamanho)
     {
+        if (string.IsNullOrEmpty(tamanho.Descricao))
+        {
+            throw new ArgumentException("Descricao cannot be null or empty", nameof(tamanho.Descricao));
+        }
+
         _context.Tamanhos.Add(tamanho);
         await _context.SaveChangesAsync();
         return tamanho;
     }
 
-    public async Task<Tamanho> UpdateTamanho(Tamanho tamanho)
+public async Task<Tamanho> UpdateTamanho(Tamanho tamanho)
     {
         _context.Entry(tamanho).State = EntityState.Modified;
         await _context.SaveChangesAsync();
