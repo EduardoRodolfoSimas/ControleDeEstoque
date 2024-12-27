@@ -4,9 +4,8 @@
 @inject ICategoriaService CategoriaService
 @rendermode InteractiveServer
 @using Blazorise
-@using Microsoft.AspNetCore.Mvc
 
-<h3>Categorias</h3>
+<h3>Cadastro de Categorias</h3>
 
 @if (categorias == null)
 {
@@ -89,10 +88,7 @@ else
             {
                 <p>Tem certeza que deseja deletar a categoria @categoriaSelecionada.Nome?</p>
             }
-            else
-            {
-                <p>Erro: Nenhuma categoria selecionada.</p>
-            }        </ModalBody>
+        </ModalBody>
         <ModalFooter>
             <button class="btn btn-danger" @onclick="DeleteCategoria">Deletar</button>
             <button class="btn btn-secondary" @onclick="CancelCategoriaButton">Cancelar</button>

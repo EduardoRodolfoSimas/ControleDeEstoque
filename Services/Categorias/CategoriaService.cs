@@ -1,7 +1,8 @@
-namespace ControleDeEstoque.Services.Categorias;
-using Data;
-using Model;
+using ControleDeEstoque.Data;
+using ControleDeEstoque.Model;
 using Microsoft.EntityFrameworkCore;
+
+namespace ControleDeEstoque.Services.Categorias;
 
 public class CategoriaService : ICategoriaService
 {

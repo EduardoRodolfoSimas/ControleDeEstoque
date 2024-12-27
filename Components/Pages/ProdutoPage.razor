@@ -3,12 +3,14 @@
 @using ControleDeEstoque.Model
 @using ControleDeEstoque.Services
 @using Blazorise
+@using ControleDeEstoque.Services.Tamanhos
 @using Microsoft.EntityFrameworkCore.Diagnostics
 @inject IProdutoService ProdutoService
 @inject ICategoriaService CategoriaService
+@inject ITamanhoService TamanhoService
 @rendermode InteractiveServer
 
-<h3>Tabela de produtos</h3>
+<h3>Estoque de Produtos</h3>
 
 @if (produtos == null)
 {
@@ -21,9 +23,10 @@ else
         <tr>
             <th>Código</th>
             <th>Produto</th>
+            <th>Categoria</th>
+            <th>Tamanho</th>
             <th>Preço</th>
             <th>Quantidade em estoque</th>
-            <th>Categoria</th>
             <th><button class="btn btn-primary" @onclick="OpenAddProdutoModal">Novo produto</button></th>
         </tr>
         </thead>
@@ -33,12 +36,20 @@ else
             <tr>
                 <td>@produto.Sku</td>
                 <td>@produto.Nome</td>
+                <td>@categorias.FirstOrDefault(c => c.Id == produto.CategoriaId)?.Nome</td>
+                <th>@tamanhos.FirstOrDefault(t =>t.Id == produto.TamanhoId)?.Nome</th>
                 <td>R$: @produto.PrecoUnitario.ToString("F2")</td>
                 <td>@produto.QuantidadeProduto</td>
-                <td>@categorias.FirstOrDefault(c => c.Id == produto.CategoriaId)?.Nome</td>
                 <td>
                     <button class="btn btn-warning" @onclick="() => OpenUpdateProdutoModal(produto)">Atualizar</button>
-                    <button class="btn btn-danger" @onclick="() => OptionDeleteProdutoButton(produto)">Deletar</button>
+                    @if(produto.QuantidadeProduto == 0)
+                    {
+                        <button class="btn btn-danger" disabled>Deletar</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-danger" @onclick="() => OptionDeleteProdutoButton(produto)">Deletar</button>
+                        }
                 </td>
             </tr>
         }
@@ -54,19 +65,17 @@ else
         <ModalBody>
             <Field>
                 <Label for="ProdutoNome" class="form-label">Nome</Label>
-                <input type="text" class="form-control" id="ProdutoNome" @bind="NovoProdutoNome" placeholder="Insira o nome do produto"/>
+                <input type="text" class="form-control" @bind="NovoProdutoNome" placeholder="Insira o nome do produto" />
+
                 <Label for="ProdutoSku" class="form-label">Código</Label>
-                <input type="text" class="form-control" id="ProdutoSku" @bind="NovoProdutoSku" placeholder="Insira o código do produto"/>
-                <Label for="ProdutoPreco" class="form-label">Preço Unitário</Label>
-                <input type="text" class="form-control" id="ProdutoPreco" @bind="NovoProdutoPreco" placeholder="Insira o preço unitário"/>
-                <Label for="ProdutoQuantidadeEstoque" class="form-label">Quantidade em estoque</Label>
-                <input type="text" class="form-control" id="ProdutoQuantidadeEstoque" @bind="NovoProdutoQuantidadeEstoque" placeholder="Insira a quantidade total em estoque" />
-                <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
+                <input type="text" class="form-control" id="ProdutoSku" @bind="NovoProdutoSku" placeholder="Insira o código do produto" />
+
+                <Label class="form-label">Categoria</Label>
                 <Dropdown>
-                    <DropdownToggle Color="Color.Default" Size="Size.Medium" >
+                    <DropdownToggle Color="Color.Default" Size="Size.Medium">
                         @if (NovoProdutoCategoria.HasValue)
                         {
-                            @categorias.FirstOrDefault(c => c.Id == NovoProdutoCategoria)?.Nome;
+                            @categorias.FirstOrDefault(c => c.Id == NovoProdutoCategoria).Nome;
                         }
                         else
                         {
@@ -80,13 +89,46 @@ else
                         }
                         else
                         {
-                            foreach(var categoria in categorias)
+                            foreach (var categoria in categorias)
                             {
                                 <DropdownItem @onclick="() => NovoProdutoCategoria = categoria.Id">@categoria.Nome</DropdownItem>
                             }
                         }
                     </DropdownMenu>
                 </Dropdown>
+
+                <Label for="Produtotamanho" class="form-label">Tamanho</Label>
+                <Dropdown>
+                    <DropdownToggle Color="Color.Default" Size="Size.Medium">
+                        @if (NovoProdutoTamanho.HasValue)
+                        {
+                            @tamanhos.FirstOrDefault(t => t.Id == NovoProdutoTamanho).Nome;
+                        }
+                        else
+                        {
+                            <text>Selecionar o tamanho</text>
+                        }
+                    </DropdownToggle>
+                    <DropdownMenu>
+                        @if (tamanhos == null)
+                        {
+                            <DropdownItem disabled>Nenhum tamanho cadastrado</DropdownItem>
+                        }
+                        else
+                        {
+                            foreach (var tamanho in tamanhos)
+                            {
+                                <DropdownItem @onclick="() => NovoProdutoTamanho = tamanho.Id">@tamanho.Nome</DropdownItem>
+                            }
+                        }
+                    </DropdownMenu>
+                </Dropdown>
+
+                <Label for="ProdutoPreco" class="form-label">Preço Unitário</Label>
+                <input type="text" class="form-control" id="ProdutoPreco" @bind="NovoProdutoPreco" placeholder="Insira o preço unitário" />
+
+                <Label for="ProdutoQuantidadeEstoque" class="form-label">Quantidade em estoque</Label>
+                <input type="text" class="form-control" id="ProdutoQuantidadeEstoque" @bind="NovoProdutoQuantidadeEstoque" placeholder="Insira a quantidade total em estoque" />
             </Field>
         </ModalBody>
         <ModalFooter>
@@ -95,6 +137,7 @@ else
         </ModalFooter>
     </ModalContent>
 </Modal>
+
 
 <Modal @ref="modalAtualizarProduto">
     <ModalContent Size="ModalSize.Default" Centered="true">
@@ -116,7 +159,7 @@ else
                     <DropdownToggle Color="Color.Default" Size="Size.Medium" >
                         @if (NovoProdutoCategoria.HasValue)
                         {
-                            @categorias.FirstOrDefault(c => c.Id == NovoProdutoCategoria)?.Nome;
+                            @categorias.FirstOrDefault(c => c.Id == NovoProdutoCategoria).Nome;
                         }
                         else
                         {
@@ -152,11 +195,11 @@ else
             <strong>Excluir Produto</strong>
         </ModalHeader>
         <ModalBody>
-            <p>Tem certeza que deseja excluir o produto permanentemente?</p>
+            <p>Tem certeza que deseja excluir o produto @produto?.Nome?</p>
         </ModalBody>
         <ModalFooter>
-            <Button Color="Color.Success" @onclick="DeleteProduto">Sim</Button>
-            <Button Color="Color.Danger" @onclick="CancelProdutoButton">Não</Button>
+            <Button class="btn btn-danger" @onclick="DeleteProduto">Deletar</Button>
+            <Button class="btn btn-secondary" @onclick="CancelProdutoButton">Cancelar</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
@@ -195,6 +238,7 @@ else
     private decimal NovoProdutoPreco;
     private int NovoProdutoQuantidadeEstoque;
     private int? NovoProdutoCategoria;
+    private int? NovoProdutoTamanho;
 
     private Modal modalCriarProduto;
     private Modal modalAtualizarProduto;
@@ -202,6 +246,7 @@ else
     private Modal modalFaltaInformacao;
     private Modal modalSkuJaCadastrado;
     
+    private List<Tamanho> tamanhos;
     private List<Categoria> categorias;
     private List<Produto> produtos;
     private Produto produto;
@@ -210,6 +255,7 @@ else
     {
         produtos = await ProdutoService.GetProdutos();
         categorias = await CategoriaService.GetCategorias();
+        tamanhos = await TamanhoService.GetTamanhos();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -218,6 +264,9 @@ else
         {
             modalCriarProduto ??= new Modal();
             modalAtualizarProduto ??= new Modal();
+            modalExcluirProduto ??= new Modal();
+            modalFaltaInformacao ??= new Modal();
+            modalSkuJaCadastrado ??= new Modal();
         }
     }
 
@@ -236,7 +285,7 @@ else
             QuantidadeProduto = NovoProdutoQuantidadeEstoque,
             CategoriaId = NovoProdutoCategoria
         };
-        while (produtos.Any(p => p.Sku == produto.Sku))
+        if (produtos.Any(p => p.Sku == produto.Sku))
         {
             modalSkuJaCadastrado.Show();
             return;

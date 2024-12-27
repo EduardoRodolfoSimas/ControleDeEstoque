@@ -15,5 +15,8 @@ public class Produto
         public decimal PrecoUnitario { get; set; } 
         public int QuantidadeProduto { get; set; } 
         public bool DataExclusao { get; set; } 
+        public int? TamanhoId { get; set; }
+        [ForeignKey("TamanhoId")]
+        public virtual Tamanho? TamanhoNavigation { get; set; }
         public DateTime DataInsercao { get; set; } = DateTime.Now; 
 }

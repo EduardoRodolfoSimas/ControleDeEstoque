@@ -23,19 +23,25 @@
       <Compile Remove="Migrations\**" />
       <Compile Remove="Components\Pages\ChartsPage.razor.cs" />
       <Compile Remove="Components\Pages\ChartPage.razor.cshtml.cs" />
+      <Compile Remove="Services\Cores\**" />
+      <Compile Remove="Model\Cor.cs" />
     </ItemGroup>
 
     <ItemGroup>
       <EmbeddedResource Remove="Migrations\**" />
+      <EmbeddedResource Remove="Services\Cores\**" />
     </ItemGroup>
 
     <ItemGroup>
       <Content Remove="Migrations\**" />
       <Content Remove="Components\Pages\Weather.razor" />
+      <Content Remove="Services\Cores\**" />
+      <Content Remove="Components\Pages\ProdutoCores.razor" />
     </ItemGroup>
 
     <ItemGroup>
       <None Remove="Migrations\**" />
+      <None Remove="Services\Cores\**" />
     </ItemGroup>
 
     <ItemGroup>

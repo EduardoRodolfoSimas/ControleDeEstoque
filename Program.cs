@@ -4,10 +4,12 @@ using ControleDeEstoque.Services;
 using ControleDeEstoque.Services.Produtos;
 using ControleDeEstoque.Services.Categorias;
 using ControleDeEstoque.Services.Vendas;
+using ControleDeEstoque.Services.Tamanhos;
 using Microsoft.EntityFrameworkCore;
 using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
+using ControleDeEstoque.Services.Tamanhos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,7 @@ builder.Services.AddDbContext<DataBaseContext>(options =>
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();   
 builder.Services.AddScoped<IVendasService, VendaService>();
+builder.Services.AddScoped<ITamanhoService, TamanhoService>();
 
 builder.Services.AddBlazorise(options =>
 {
