@@ -20,11 +20,6 @@ public class TamanhoService : ITamanhoService
 
     public async Task<Tamanho> AddTamanho(Tamanho tamanho)
     {
-        if (string.IsNullOrEmpty(tamanho.Descricao))
-        {
-            throw new ArgumentException("Descricao cannot be null or empty", nameof(tamanho.Descricao));
-        }
-
         _context.Tamanhos.Add(tamanho);
         await _context.SaveChangesAsync();
         return tamanho;

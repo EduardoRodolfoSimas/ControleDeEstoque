@@ -49,8 +49,7 @@ else
     <Label for="TamanhoNome" class="form-label">Tamanho</Label>
     <input type="text" class="form-control" id="TamanhoNome" @bind-value="NovoTamanhoNome" placeholder="Insira o nome do tamanho"/>
     <Label for="TamanhoDescricao" class="form-label">Descrição</Label>
-    <input type="text" class="form-control" id="TamanhoDescricao" @bind-value="NovoTamanhoDescricao" placeholder="Insira a descrição do tamanho"/>
-   </Field>
+    <input type="text" class="form-control" id="TamanhoDescricao" @bind-value="NovoTamanhoDescricao" placeholder="Insira a descrição do tamanho"/></Field>
   </ModalBody>
   <ModalFooter>
    <Button Color="Color.Success" @onclick="InsertTamanhoButton">Salvar</Button>
@@ -104,6 +103,8 @@ else
  private Modal modalAtualizarTamanho = new Modal();
  private Modal modalDeletarTamanho = new Modal();
  private Tamanho tamanhoSelecionado;
+ private string atualizarTamanhoNome;
+ private string atualizarTamanhoDescricao;
  private string NovoTamanhoNome;
  private string NovoTamanhoDescricao;
 
@@ -111,9 +112,21 @@ else
  {
   tamanhos = await TamanhoService.GetTamanhos();
  }
+ 
+ protected override async Task OnAfterRenderAsync(bool firstRender)
+ {
+  if (firstRender)
+  {
+   modalCriarTamanho ??= new Modal();
+   modalAtualizarTamanho ??= new Modal();
+   modalDeletarTamanho ??= new Modal();
+  }
+ }
 
  private void OpenAddTamanhoModal()
  {
+  NovoTamanhoNome = string.Empty;
+  NovoTamanhoDescricao = string.Empty;
   modalCriarTamanho.Show();
  }
 
@@ -127,6 +140,8 @@ else
 
  private void CancelTamanhoButton()
  {
+  NovoTamanhoNome = string.Empty;
+  NovoTamanhoDescricao = string.Empty;
   modalCriarTamanho.Hide();
   modalAtualizarTamanho.Hide();
   modalDeletarTamanho.Hide();
@@ -137,7 +152,7 @@ else
   Tamanho tamanho = new Tamanho
   {
    Nome = NovoTamanhoNome,
-   Descricao = string.IsNullOrWhiteSpace(NovoTamanhoDescricao) ? null : NovoTamanhoDescricao,
+   Descricao = NovoTamanhoDescricao,
    DataInsercao = DateTime.Now
   };
   await TamanhoService.AddTamanho(tamanho);
@@ -147,18 +162,11 @@ else
 
  private async Task UpdateTamanhoButton()
  {
-  if (tamanhoSelecionado != null)
-  {
-   Tamanho tamanho = new Tamanho
-   {
-    Id = tamanhoSelecionado.Id,
-    Nome = NovoTamanhoNome,
-    Descricao = NovoTamanhoDescricao
-   };
-   await TamanhoService.UpdateTamanho(tamanho);
+   tamanhoSelecionado.Nome = atualizarTamanhoNome;
+   tamanhoSelecionado.Descricao = atualizarTamanhoDescricao;
+   await TamanhoService.UpdateTamanho(tamanhoSelecionado);
    tamanhos = await TamanhoService.GetTamanhos();
    modalAtualizarTamanho.Hide();
-  }
  }
 
  private void OptionDeleteTamanhoButton(Tamanho tamanho)

@@ -15,29 +15,29 @@
                 <CardTitle>Registro de Vendas</CardTitle>
             </CardHeader>
             <CardBody>
-                    <DataGrid TItem="Venda"
-                              Data="vendas"
-                              Responsive
-                              ShowPager
-                              Editable
-                              EditMode="DataGridEditMode.Popup">
-                        <DataGridColumns>
-                            <DataGridColumn TItem="Venda" Field="@nameof(Venda.ProdutoNome)" Caption="Produto" />
-                            <DataGridColumn TItem="Venda" Field="@nameof(Venda.CategoriaNome)" Caption="Categoria" />
-                            <DataGridColumn TItem="Venda" Field="@nameof(Venda.TamanhoNome)" Caption="Tamanho" />
-                            <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.QuantidadeVendida)" Caption="Quantidade Vendida" Editable />
-                            <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.PrecoUnitario)" Caption="Preço Unitário" DisplayFormat="{0:C}" />
-                            <DataGridColumn TItem="Venda" Field="@nameof(Venda.DataVenda)" Caption="Data da Venda" DisplayFormat="{0:dd/MM/yyyy HH:mm}" />
-                            <DataGridColumn TItem="Venda" Field="@nameof(Venda.FormaPagamento)" Caption="Forma de Pagamento" />
-                            <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}" />
-                        </DataGridColumns>
-                        <ButtonRowTemplate>
-                            <Button Color="Color.Success" Clicked="RegistrarVenda">Registrar Venda</Button>
-                            <Button Color="Color.Warning" Clicked="AtualizarProdutos">Atualizar Venda</Button>
-                            <!-- TODO: Implementar a devolução pro estoque -->
-                            <Button Color="Color.Danger" Clicked="ExcluirVenda">Excluir</Button> 
-                        </ButtonRowTemplate>
-                    </DataGrid>
+                <DataGrid TItem="Venda"
+                          Data="vendas"
+                          Responsive
+                          ShowPager
+                          Editable
+                          EditMode="DataGridEditMode.Cell">
+                    <DataGridColumns>
+                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.ProdutoNome)" Caption="Produto" />
+                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.CategoridaId)" Caption="Categoria" />
+                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.TamanhoId)" Caption="Tamanho" />
+                        <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.QuantidadeVendida)" Caption="Quantidade Vendida" Editable />
+                        <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.PrecoUnitario)" Caption="Preço Unitário" DisplayFormat="{0:C}" />
+                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.DataVenda)" Caption="Data da Venda" DisplayFormat="{0:dd/MM/yyyy HH:mm}" />
+                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.FormaPagamento)" Caption="Forma de Pagamento" />
+                        <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}" />
+                    </DataGridColumns>
+                    <ButtonRowTemplate>
+                        <Button Color="Color.Success" Clicked="RegistrarVenda">Registrar Venda</Button>
+                        <Button Color="Color.Warning" Clicked="AtualizarProdutos">Atualizar Venda</Button>
+                        <!-- TODO: Implementar a devolução pro estoque -->
+                        <Button Color="Color.Danger" Clicked="ExcluirVenda">Excluir</Button> 
+                    </ButtonRowTemplate>
+                </DataGrid>
             </CardBody>
         </Card>
     </Column>
@@ -80,6 +80,7 @@
 </Modal>
 
 @code {
+    decimal vendatotal = 0;
     private string ProdutoSku;
     private string ProdutoNome;
     private string FormaPagamentoString;
@@ -113,8 +114,8 @@
                     {
                         ProdutoSku = produto.Sku,
                         ProdutoNome = produto.Nome,
-                        CategoriaNome = produto.Categoria?.Nome,
-                        TamanhoNome = produto.Tamanho?.Nome,
+                        Categoria = produto.Categoria,
+                        Tamanho = produto.Tamanho,
                         DataVenda = DateTime.Now,
                         PrecoUnitario = produto.PrecoUnitario,
                         QuantidadeVendida = QuantidadeVendida,
@@ -124,7 +125,9 @@
                     await VendaService.RegistrarVenda(venda);
                     await AtualizarProdutos();
                     vendas = await VendaService.ObterVendas();
-
+                    
+                    
+                    
                     LimparFormulario();
                     ModalRegistrarVenda.Hide();
                 }

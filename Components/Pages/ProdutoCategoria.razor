@@ -19,7 +19,9 @@ else
             <th>Código</th>
             <th>Nome</th>
             <th>Descrição</th>
-            <th><button class="btn btn-primary" @onclick="OpenAddCategoriaModal">Nova categoria</button></th>
+            <th>
+                <button class="btn btn-primary" @onclick="OpenAddCategoriaModal">Nova categoria</button>
+            </th>
         </tr>
         </thead>
         <tbody>
@@ -30,8 +32,10 @@ else
                 <td>@categoria.Nome</td>
                 <td>@categoria.Descricao</td>
                 <td>
-                    <button class="btn btn-warning" @onclick="() => OpenUpdateCategoriaModal(categoria)">Atualizar</button>
-                    <button class="btn btn-danger" @onclick="() => OptionDeleteCategoriaButton(categoria)">Deletar</button>
+                    <button class="btn btn-warning" @onclick="() => OpenUpdateCategoriaModal(categoria)">Atualizar
+                    </button>
+                    <button class="btn btn-danger" @onclick="() => OptionDeleteCategoriaButton(categoria)">Deletar
+                    </button>
                 </td>
             </tr>
         }
@@ -46,9 +50,11 @@ else
         <ModalBody>
             <Field>
                 <Label for="CategoriaNome" class="form-label">Nome</Label>
-                <input type="text" class="form-control" id="CategoriaNome" @bind="NovoCategoriaNome" placeholder="Insira o nome da categoria"/>
+                <input type="text" class="form-control" id="CategoriaNome" @bind="NovoCategoriaNome"
+                       placeholder="Insira o nome da categoria"/>
                 <Label for="CategoriaDescricao" class="form-label">Descrição</Label>
-                <input type="text" class="form-control" id="CategoriaDescricao" @bind="NovoCategoriaDescricao" placeholder="Insira a descrição da categoria"/>
+                <input type="text" class="form-control" id="CategoriaDescricao" @bind="NovoCategoriaDescricao"
+                       placeholder="Insira a descrição da categoria"/>
             </Field>
         </ModalBody>
         <ModalFooter>
@@ -66,9 +72,11 @@ else
         <ModalBody>
             <Field>
                 <Label for="CategoriaNome" class="form-label">Nome</Label>
-                <input type="text" class="form-control" id="CategoriaNome" @bind="AtualizarCategoriaNome" placeholder="Insira o nome da categoria"/>
+                <input type="text" class="form-control" id="CategoriaNome" @bind="AtualizarCategoriaNome"
+                       placeholder="Insira o nome da categoria"/>
                 <Label for="CategoriaDescricao" class="form-label">Descrição</Label>
-                <input type="text" class="form-control" id="CategoriaDescricao" @bind="AtualizarCategoriaDescricao" placeholder="Insira a descrição da categoria"/>
+                <input type="text" class="form-control" id="CategoriaDescricao" @bind="AtualizarCategoriaDescricao"
+                       placeholder="Insira a descrição da categoria"/>
             </Field>
         </ModalBody>
         <ModalFooter>
@@ -124,8 +132,8 @@ else
 
     private void OpenAddCategoriaModal()
     {
-        NovoCategoriaNome = "";
-        NovoCategoriaDescricao = "";
+        NovoCategoriaDescricao = string.Empty;
+        NovoCategoriaDescricao = string.Empty;
         modalCriarCategoria.Show();
     }
 
@@ -134,7 +142,8 @@ else
         Categoria categoria = new Categoria
         {
             Nome = NovoCategoriaNome,
-            Descricao = NovoCategoriaDescricao
+            Descricao = NovoCategoriaDescricao,
+            DataInsercao = DateTime.Now
         };
         await CategoriaService.AddCategoria(categoria);
         categorias = await CategoriaService.GetCategorias();
@@ -151,10 +160,8 @@ else
 
     private void OptionDeleteCategoriaButton(Categoria categoria)
     {
-
-            categoriaSelecionada = categoria;
-            modalDeletarCategoria.Show();
-
+        categoriaSelecionada = categoria;
+        modalDeletarCategoria.Show();
     }
 
     private async Task DeleteCategoria()
@@ -166,8 +173,8 @@ else
 
     private void CancelCategoriaButton()
     {
-        NovoCategoriaNome = "";
-        NovoCategoriaDescricao = "";
+        NovoCategoriaNome = string.Empty;
+        NovoCategoriaDescricao = string.Empty;
         modalCriarCategoria.Hide();
         modalAtualizarCategoria.Hide();
         modalDeletarCategoria.Hide();
@@ -181,4 +188,5 @@ else
         categorias = await CategoriaService.GetCategorias();
         modalAtualizarCategoria.Hide();
     }
+
 }

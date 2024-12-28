@@ -17,16 +17,12 @@ public class VendaService : IVendasService
     
     public async Task<List<Venda>> RegistrarVenda(Venda venda)
     {
+        var produto = await _context.Produtos.FirstOrDefaultAsync(p => p.Sku == venda.ProdutoSku);
+        produto.QuantidadeProduto -= venda.QuantidadeVendida;
+        _context.Produtos.Update(produto);
         _context.Vendas.Add(venda);
         await _context.SaveChangesAsync();
-        
-        var produto = await _context.Produtos.FindAsync(venda.ProdutoNome);
-        if (produto != null)
-        {
-            produto.QuantidadeProduto -= venda.QuantidadeVendida;
-            await _context.SaveChangesAsync(); 
-        }
-        return await _context.Vendas.ToListAsync();
+        return await ObterVendas();
     }
 
     public async Task<List<Venda>> ObterVendas()

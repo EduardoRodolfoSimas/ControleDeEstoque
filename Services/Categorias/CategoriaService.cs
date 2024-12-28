@@ -31,12 +31,7 @@ public class CategoriaService : ICategoriaService
         await _context.SaveChangesAsync();
         return categoria;
     }
-
-    public async Task<Categoria> GetCategoria(int id)
-    {
-        return await _context.Categorias.FindAsync(id);
-    }
-
+    
     public async Task<List<Categoria>> GetCategorias()
     {
         return await _context.Categorias.ToListAsync();
