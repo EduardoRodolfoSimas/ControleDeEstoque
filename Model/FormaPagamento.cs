@@ -2,8 +2,9 @@ namespace ControleDeEstoque.Model;
 
 public enum FormaPagamento
 {
-    Credito,
-    Debito,
+    Crédito,
+    Débito,
     Dinheiro,
-    Pix
+    Pix,
+    Troca
 }
