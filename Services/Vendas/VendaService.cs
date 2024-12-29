@@ -1,8 +1,6 @@
 using ControleDeEstoque.Model;
 using ControleDeEstoque.Data;
 using Microsoft.EntityFrameworkCore;
-using ControleDeEstoque.Services.Vendas;
-using ControleDeEstoque.Services.Produtos;
 
 namespace ControleDeEstoque.Services.Vendas;
 
@@ -27,7 +25,7 @@ public class VendaService : IVendasService
 
     public async Task<List<Venda>> ObterVendas()
     { 
-        return await _context.Vendas.ToListAsync();;
+        return await _context.Vendas.ToListAsync();
     }
     
     public async Task<List<Venda>> ExcluirVenda()
@@ -39,5 +37,12 @@ public class VendaService : IVendasService
             await _context.SaveChangesAsync();
         }
         return await ObterVendas();
+    }
+    
+    public async Task<Dictionary<DateTime, List<Venda>>> ObterVendasAgrupadasPorDia()
+    {
+        return await _context.Vendas
+            .GroupBy(v => v.DataVenda.Date)
+            .ToDictionaryAsync(g => g.Key, g => g.ToList());
     }
 }

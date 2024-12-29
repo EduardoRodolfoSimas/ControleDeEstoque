@@ -15,30 +15,43 @@
                 <CardTitle>Registro de Vendas</CardTitle>
             </CardHeader>
             <CardBody>
-                <DataGrid TItem="Venda"
-                          Data="vendas"
-                          Responsive
-                          ShowPager
-                          PageSize="1"
-                          Editable
-                          EditMode="DataGridEditMode.Cell">
-                    <DataGridColumns>
-                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.ProdutoNome)" Caption="Produto" />
-                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.CategoriaNome)" Caption="Categoria" />
-                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.TamanhoNome)" Caption="Tamanho" />
-                        <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.QuantidadeVendida)" Caption="Quantidade Vendida" Editable />
-                        <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.PrecoUnitario)" Caption="Preço Unitário" DisplayFormat="{0:C}" />
-                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.DataVenda)" Caption="Data da Venda" DisplayFormat="{0:dd/MM/yyyy HH:mm}" />
-                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.FormaPagamento)" Caption="Forma de Pagamento" />
-                        <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}" />
-                    </DataGridColumns>
-                    <ButtonRowTemplate>
-                        <Button Color="Color.Success" Clicked="RegistrarVenda">Registrar Venda</Button>
-                        <Button Color="Color.Warning" Clicked="AtualizarProdutos">Atualizar Venda</Button>
+                <Div class="me-auto ms-auto">
+                        <Button Color="Color.Success" Clicked="RegistrarVenda" Class="me-1">Registrar Venda</Button>
+                        <Button Color="Color.Warning" Clicked="AtualizarProdutos" Class="me-1">Atualizar Venda</Button>
                         <!-- TODO: Implementar a devolução pro estoque -->
-                        <Button Color="Color.Danger" Clicked="ExcluirVenda">Excluir</Button> 
-                    </ButtonRowTemplate>
+                        <Button Color="Color.Danger" Clicked="ExcluirVenda" Class="me-1">Excluir</Button>
+                    </Div>
+                <DataGrid TItem="Venda"
+                          Data="@(vendasPorDia.ElementAtOrDefault(currentPage).Value ?? new List<Venda>())"
+                          Striped="true"
+                          CurrentPage="currentPage">
+                    <DataGridColumns>
+                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.ProdutoNome)" Caption="Produto"/>
+                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.CategoriaNome)" Caption="Categoria"/>
+                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.TamanhoNome)" Caption="Tamanho"/>
+                        <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.QuantidadeVendida)" Caption="Quantidade Vendida" Editable/>
+                        <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.PrecoUnitario)" Caption="Preço Unitário" DisplayFormat="{0:C}"/>
+                        <DataGridDateColumn TItem="Venda" Field="@nameof(Venda.DataVenda)" Caption="Data da Venda" DisplayFormat="{0:dd/MM/yyyy HH:mm}"/>
+                        <DataGridColumn TItem="Venda" Field="@nameof(Venda.FormaPagamento)" Caption="Forma de Pagamento"/>
+                        <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}"/>
+                    </DataGridColumns>
                 </DataGrid>
+                <Div class="me-auto" Style="width: 172px; height: 38px;">
+                    <Addons>
+                        <Addon AddonType="AddonType.Body">
+                            <DatePicker @ref="datePicker" TValue="DateTime?" @bind-Date="selectedDate"/>
+                        </Addon>
+                        <Addon AddonType="AddonType.End">
+                            <Button Color="Color.Light" Clicked="() => datePicker.ToggleAsync()">
+                                <Icon Name="IconName.CalendarDay"/>
+                            </Button>
+                        </Addon>
+                    </Addons>
+                </Div>
+                <Div class="ms-auto d-flex justify-content-end">
+                    <Button Color="Color.Light" Clicked="PaginaAnterior">Anterior</Button>
+                    <Button Color="Color.Light" Clicked="ProximaPagina">Próximo</Button>
+                </Div>
             </CardBody>
         </Card>
     </Column>
@@ -88,16 +101,31 @@
     private FormaPagamento FormaPagamentoEnum;
     private int QuantidadeVendida;
     private List<Produto> produtos;
-    private List<Venda> vendas;
+    private Dictionary<DateTime, List<Venda>> vendasPorDia = new Dictionary<DateTime, List<Venda>>();
     private Modal ModalRegistrarVenda;
     private Produto produto;
+    private int currentPage = 0;
+    private int VendasPorDiaCount => vendasPorDia.Count;
+    private DatePicker<DateTime?> datePicker;
+    private DateTime? selectedDate;
 
     protected override async Task OnInitializedAsync()
     {
         produtos = await ProdutoService.GetProdutos() ?? new List<Produto>();
-        vendas = await VendaService.ObterVendas() ?? new List<Venda>();
+        vendasPorDia = await VendaService.ObterVendasAgrupadasPorDia() ?? new Dictionary<DateTime, List<Venda>>();
+        VerificarDataAtual();
     }
-    
+
+    private void VerificarDataAtual()
+    {
+        var dataAtual = DateTime.Now.Date;
+        if (!vendasPorDia.ContainsKey(dataAtual))
+        {
+            vendasPorDia[dataAtual] = new List<Venda>();
+        }
+        currentPage = vendasPorDia.Keys.ToList().IndexOf(dataAtual);
+    }
+
     private async Task RegistrarVenda()
     {
         ModalRegistrarVenda.Show();
@@ -125,10 +153,8 @@
 
                     await VendaService.RegistrarVenda(venda);
                     await AtualizarProdutos();
-                    vendas = await VendaService.ObterVendas();
-                    
-                    
-                    
+                    vendasPorDia = await VendaService.ObterVendasAgrupadasPorDia();
+                    VerificarDataAtual();
                     LimparFormulario();
                     ModalRegistrarVenda.Hide();
                 }
@@ -148,6 +174,7 @@
             ModalRegistrarVenda.Hide();
         }
     }
+
     private void LimparFormulario()
     {
         ProdutoSku = string.Empty;
@@ -181,7 +208,56 @@
     private async Task AtualizarProdutos()
     {
         produtos = await ProdutoService.GetProdutos();
-        vendas = await VendaService.ObterVendas();
+        vendasPorDia = await VendaService.ObterVendasAgrupadasPorDia();
         StateHasChanged();
+    }
+
+    private void OnPageChanged(int page)
+    {
+        currentPage = page;
+    }
+
+    private void PrimeiraPagina()
+    {
+        currentPage = 0;
+    }
+
+    private void PaginaAnterior()
+    {
+        if (currentPage > 0)
+        {
+            currentPage--;
+        }
+    }
+
+    private void ProximaPagina()
+    {
+        if (currentPage < vendasPorDia.Count - 1)
+        {
+            currentPage++;
+        }
+    }
+
+    private void UltimaPagina()
+    {
+        currentPage = vendasPorDia.Count - 1;
+    }
+
+    private async Task FetchSalesForSelectedDate()
+    {
+        if (selectedDate.HasValue)
+        {
+            var date = selectedDate.Value.Date;
+            if (vendasPorDia.ContainsKey(date))
+            {
+                currentPage = vendasPorDia.Keys.ToList().IndexOf(date);
+            }
+            else
+            {
+                vendasPorDia[date] = new List<Venda>();
+                currentPage = vendasPorDia.Keys.ToList().IndexOf(date);
+            }
+            StateHasChanged();
+        }
     }
 }

@@ -9,5 +9,5 @@ public interface IVendasService
     Task<List<Venda>> ObterVendas();
     
     Task<List<Venda>> ExcluirVenda();
-
+    Task<Dictionary<DateTime, List<Venda>>> ObterVendasAgrupadasPorDia();
 }
