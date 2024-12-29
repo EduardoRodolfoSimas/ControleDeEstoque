@@ -15,11 +15,11 @@
                 <CardTitle>Registro de Vendas</CardTitle>
             </CardHeader>
             <CardBody>
-                <Div class="me-auto ms-auto">
-                        <Button Color="Color.Success" Clicked="RegistrarVenda" Class="me-1">Registrar Venda</Button>
-                        <Button Color="Color.Warning" Clicked="AtualizarProdutos" Class="me-1">Atualizar Venda</Button>
+                     <Div class="ms-auto">
+                        <Button Color="Color.Success" Clicked="RegistrarVenda">Registrar Venda</Button>
+                        <Button Color="Color.Warning" Clicked="AtualizarProdutos">Atualizar Venda</Button>
                         <!-- TODO: Implementar a devolução pro estoque -->
-                        <Button Color="Color.Danger" Clicked="ExcluirVenda" Class="me-1">Excluir</Button>
+                        <Button Color="Color.Danger" Clicked="ExcluirVenda">Excluir</Button>
                     </Div>
                 <DataGrid TItem="Venda"
                           Data="@(vendasPorDia.ElementAtOrDefault(currentPage).Value ?? new List<Venda>())"
@@ -36,22 +36,24 @@
                         <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}"/>
                     </DataGridColumns>
                 </DataGrid>
-                <Div class="me-auto" Style="width: 172px; height: 38px;">
-                    <Addons>
-                        <Addon AddonType="AddonType.Body">
-                            <DatePicker @ref="datePicker" TValue="DateTime?" @bind-Date="selectedDate"/>
-                        </Addon>
-                        <Addon AddonType="AddonType.End">
-                            <Button Color="Color.Light" Clicked="() => datePicker.ToggleAsync()">
-                                <Icon Name="IconName.CalendarDay"/>
-                            </Button>
-                        </Addon>
-                    </Addons>
-                </Div>
-                <Div class="ms-auto d-flex justify-content-end">
-                    <Button Color="Color.Light" Clicked="PaginaAnterior">Anterior</Button>
-                    <Button Color="Color.Light" Clicked="ProximaPagina">Próximo</Button>
-                </Div>
+                    <Div class="d-flex justify-content-between">
+                        <Div class="d-flex align-items-center" Style="width: 172px; height: 38px;">
+                            <Addons>
+                                <Addon AddonType="AddonType.Body">
+                                    <DatePicker @ref="datePicker" TValue="DateTime?" @bind-Date="selectedDate" InputFormat="dd/MM/yyyy" DisplayFormat="dd/MM/yyyy" OnKeyPress="HandleKeyPress"/>
+                                </Addon>
+                                <Addon AddonType="AddonType.End">
+                                    <Button Color="Color.Light" Clicked="@(async () => await HandleKeyPress(new KeyboardEventArgs { Key = "Enter" }))">
+                                        <Icon Name="IconName.CalendarDay"/>
+                                    </Button>
+                                </Addon>
+                            </Addons>
+                        </Div>
+                        <Div class="d-flex align-items-center">
+                            <Button Color="Color.Light" Clicked="PaginaAnterior" class="me-1">Anterior</Button>
+                            <Button Color="Color.Light" Clicked="ProximaPagina">Próximo</Button>
+                        </Div>
+                    </Div>
             </CardBody>
         </Card>
     </Column>
@@ -114,16 +116,6 @@
         produtos = await ProdutoService.GetProdutos() ?? new List<Produto>();
         vendasPorDia = await VendaService.ObterVendasAgrupadasPorDia() ?? new Dictionary<DateTime, List<Venda>>();
         VerificarDataAtual();
-    }
-
-    private void VerificarDataAtual()
-    {
-        var dataAtual = DateTime.Now.Date;
-        if (!vendasPorDia.ContainsKey(dataAtual))
-        {
-            vendasPorDia[dataAtual] = new List<Venda>();
-        }
-        currentPage = vendasPorDia.Keys.ToList().IndexOf(dataAtual);
     }
 
     private async Task RegistrarVenda()
@@ -212,16 +204,6 @@
         StateHasChanged();
     }
 
-    private void OnPageChanged(int page)
-    {
-        currentPage = page;
-    }
-
-    private void PrimeiraPagina()
-    {
-        currentPage = 0;
-    }
-
     private void PaginaAnterior()
     {
         if (currentPage > 0)
@@ -238,9 +220,28 @@
         }
     }
 
-    private void UltimaPagina()
+    private void VerificarDataAtual()
     {
-        currentPage = vendasPorDia.Count - 1;
+        var dataAtual = DateTime.Now.Date;
+        if (!vendasPorDia.ContainsKey(dataAtual))
+        {
+            vendasPorDia[dataAtual] = new List<Venda>();
+        }
+        currentPage = vendasPorDia.Keys.ToList().IndexOf(dataAtual);
+    }
+    
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await OnDateSelected(selectedDate);
+        }
+    }
+
+    private async Task OnDateSelected(DateTime? date)
+    {
+        selectedDate = date;
+        await FetchSalesForSelectedDate();
     }
 
     private async Task FetchSalesForSelectedDate()
