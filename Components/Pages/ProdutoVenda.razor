@@ -15,12 +15,26 @@
                 <CardTitle>Registro de Vendas</CardTitle>
             </CardHeader>
             <CardBody>
-                     <Div class="ms-auto">
-                        <Button Color="Color.Success" Clicked="RegistrarVenda">Registrar Venda</Button>
-                        <Button Color="Color.Warning" Clicked="AtualizarProdutos">Atualizar Venda</Button>
-                        <!-- TODO: Implementar a devolução pro estoque -->
-                        <Button Color="Color.Danger" Clicked="ExcluirVenda">Excluir</Button>
+                <Div class="d-flex justify-content-between">
+                    <Div>
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <DatePicker @ref="datePicker" TValue="DateTime?" @bind-Date="selectedDate" InputFormat="dd/MM/yyyy" DisplayFormat="dd/MM/yyyy" Style="width: 12px;"/>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <Button Color="Color.Light" Clicked="@(async () => await HandleKeyPress(new KeyboardEventArgs { Key = "Enter" }))">
+                                    <Icon Name="IconName.CalendarDay"/>
+                                </Button>
+                            </Addon>
+                        </Addons>
                     </Div>
+                    <Div>
+                        <Button Color="Color.Success" Clicked="RegistrarVenda" class="me-1">Registrar Venda</Button>
+                        <Button Color="Color.Warning" Clicked="AtualizarProdutos" class="me-1">Atualizar Venda</Button>
+                        <!-- TODO: Implementar a devolução pro estoque -->
+                        <Button Color="Color.Danger" Clicked="ExcluirVenda" class="me-1">Excluir </Button>
+                    </Div>
+                </Div>
                 <DataGrid TItem="Venda"
                           Data="@(vendasPorDia.ElementAtOrDefault(currentPage).Value ?? new List<Venda>())"
                           Striped="true"
@@ -38,21 +52,20 @@
                 </DataGrid>
                 <Div class="d-flex justify-content-start">
                     <Div class="d-flex align-items-center">
-                        <Button Color="Color.Light" Clicked="PaginaAnterior" class="me-1">Anterior</Button>
-                        <Button Color="Color.Light" Clicked="ProximaPagina" class="me-1">Próximo</Button>
-                        <Addons>
-                            <Addon AddonType="AddonType.Body">
-                                <DatePicker @ref="datePicker" TValue="DateTime?" @bind-Date="selectedDate" InputFormat="dd/MM/yyyy" DisplayFormat="dd/MM/yyyy" Style="width: 12px;"/>
-                            </Addon>
-                            <Addon AddonType="AddonType.End">
-                                <Button Color="Color.Light" Clicked="@(async () => await HandleKeyPress(new KeyboardEventArgs { Key = "Enter" }))">
-                                    <Icon Name="IconName.CalendarDay"/>
-                                </Button>
-                            </Addon>
-                        </Addons>
+                        <Button Color="Color.Primary" Clicked="PaginaAnterior" class="me-1">Anterior</Button>
+                        <Button Color="Color.Primary" Clicked="ProximaPagina" class="me-1">Próximo</Button>
                     </Div>
-                </Div>        
-                </CardBody>
+                    <Div Class="ms-auto">
+                        <table>
+                            <tr>
+                                <td>
+                                    <strong>Total R$: @(vendasPorDia.ElementAtOrDefault(currentPage).Value?.Sum(v => v.Subtotal) ?? 0)</strong>
+                                </td>
+                            </tr>
+                        </table>
+                    </Div>
+                </Div>
+            </CardBody>
         </Card>
     </Column>
 </Row>
