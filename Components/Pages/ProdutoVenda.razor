@@ -36,25 +36,23 @@
                         <DataGridNumericColumn TItem="Venda" Field="@nameof(Venda.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}"/>
                     </DataGridColumns>
                 </DataGrid>
-                    <Div class="d-flex justify-content-between">
-                        <Div class="d-flex align-items-center" Style="width: 172px; height: 38px;">
-                            <Addons>
-                                <Addon AddonType="AddonType.Body">
-                                    <DatePicker @ref="datePicker" TValue="DateTime?" @bind-Date="selectedDate" InputFormat="dd/MM/yyyy" DisplayFormat="dd/MM/yyyy" OnKeyPress="HandleKeyPress"/>
-                                </Addon>
-                                <Addon AddonType="AddonType.End">
-                                    <Button Color="Color.Light" Clicked="@(async () => await HandleKeyPress(new KeyboardEventArgs { Key = "Enter" }))">
-                                        <Icon Name="IconName.CalendarDay"/>
-                                    </Button>
-                                </Addon>
-                            </Addons>
-                        </Div>
-                        <Div class="d-flex align-items-center">
-                            <Button Color="Color.Light" Clicked="PaginaAnterior" class="me-1">Anterior</Button>
-                            <Button Color="Color.Light" Clicked="ProximaPagina">Próximo</Button>
-                        </Div>
+                <Div class="d-flex justify-content-start">
+                    <Div class="d-flex align-items-center">
+                        <Button Color="Color.Light" Clicked="PaginaAnterior" class="me-1">Anterior</Button>
+                        <Button Color="Color.Light" Clicked="ProximaPagina" class="me-1">Próximo</Button>
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <DatePicker @ref="datePicker" TValue="DateTime?" @bind-Date="selectedDate" InputFormat="dd/MM/yyyy" DisplayFormat="dd/MM/yyyy" Style="width: 12px;"/>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <Button Color="Color.Light" Clicked="@(async () => await HandleKeyPress(new KeyboardEventArgs { Key = "Enter" }))">
+                                    <Icon Name="IconName.CalendarDay"/>
+                                </Button>
+                            </Addon>
+                        </Addons>
                     </Div>
-            </CardBody>
+                </Div>        
+                </CardBody>
         </Card>
     </Column>
 </Row>
