@@ -4,181 +4,195 @@
 @using ControleDeEstoque.Services.Tamanhos
 @inject ITamanhoService TamanhoService
 @rendermode InteractiveServer
+@using Blazorise.DataGrid
 @using Blazorise
 
 <h3>Cadastro de Tamanhos</h3>
 
 @if (tamanhos == null)
 {
- <p><em>Carregando...</em></p>
+    <p><em>Carregando...</em></p>
 }
 else
 {
- <table class="table">
-  <thead>
-  <tr>
-   <th>Código</th>
-   <th>Tamanho</th>
-   <th>Descrição</th>
-   <th><button class="btn btn-primary" @onclick="OpenAddTamanhoModal">Novo Tamanho</button></th>
-  </tr>
-  </thead>
-  <tbody>
-  @foreach (var tamanho in tamanhos)
-  { 
-    <tr>
-    <td>@tamanho.Id</td>
-    <td>@tamanho.Nome</td>
-    <td>@tamanho.Descricao</td>
-    <td>
-     <button class="btn btn-warning" @onclick="() => OpenUpdateTamanhoModal(tamanho)">Atualizar</button>
-     <button class="btn btn-danger" @onclick="() => OptionDeleteTamanhoButton(tamanho)">Deletar</button>
-    </td>
-   </tr>
-  }
-  </tbody>
- </table>
+    <Row>
+        <Column>
+            <Card Margin="Margin.Is4.OnY">
+                <CardHeader>
+                    <CardTitle>Lista de Tamanhos</CardTitle>
+                </CardHeader>
+                <CardBody>
+                    <Div class="d-flex justify-content-between">
+                        <Div>
+                            <Button Color="Color.Primary" @onclick="OpenAddTamanhoModal">Novo Tamanho</Button>
+                        </Div>
+                    </Div>
+                    <DataGrid TItem="Tamanho"
+                              Data="tamanhos"
+                              @bind-SelectedRow="tamanhoSelecionado"
+                              Striped="true"
+                              Editable
+                              Responsive
+                              ShowPager
+                              CommandMode="DataGridCommandMode.ButtonRow"
+                              EditMode="DataGridEditMode.Popup">
+                        <DataGridColumns>
+                                <DataGridCommandColumn  NewCommandAllowed="false" EditCommandAllowed="false" DeleteCommandAllowed="false"  CancelCommandAllowed >
+                                    <SaveCommandTemplate>
+                                        <Button ElementId="btnSave" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+                                    </SaveCommandTemplate>
+                                    <CancelCommandTemplate>
+                                        <Button ElementId="btnCancel" Color="Color.Secondary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+                                    </CancelCommandTemplate>
+                                </DataGridCommandColumn>
+                            <DataGridColumn TItem="Tamanho" Field="@nameof(Tamanho.Id)" Caption="Código"/>
+                            <DataGridColumn TItem="Tamanho" Field="@nameof(Tamanho.Nome)" Caption="Tamanho" Editable/>
+                            <DataGridColumn TItem="Tamanho" Field="@nameof(Tamanho.Descricao)" Caption="Descrição" Editable/>
+                        </DataGridColumns>
+                        <ButtonRowTemplate>
+                            <Button Color="Color.Success" Clicked="() => OpenUpdateTamanhoModal(tamanhoSelecionado)">New</Button>
+                            <Button Color="Color.Primary" Disabled="(tamanhoSelecionado is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+                            <Button Color="Color.Danger" Disabled="(tamanhoSelecionado is null)" Clicked="context.DeleteCommand.Clicked">Delete</Button>
+                            <Button Color="Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
+                        </ButtonRowTemplate>
+                    </DataGrid>
+                </CardBody>
+            </Card>
+        </Column>
+    </Row>
 }
+
 <Modal @ref="modalCriarTamanho">
- <ModalContent Size="ModalSize.Default" Centered="true">
-  <ModalHeader>
-   <strong>Adicionar um novo tamanho</strong>
-  </ModalHeader>
-  <ModalBody>
-   <Field>
-    <Label for="TamanhoNome" class="form-label">Tamanho</Label>
-    <input type="text" class="form-control" id="TamanhoNome" @bind-value="NovoTamanhoNome" placeholder="Insira o nome do tamanho"/>
-    <Label for="TamanhoDescricao" class="form-label">Descrição</Label>
-    <input type="text" class="form-control" id="TamanhoDescricao" @bind-value="NovoTamanhoDescricao" placeholder="Insira a descrição do tamanho"/></Field>
-  </ModalBody>
-  <ModalFooter>
-   <Button Color="Color.Success" @onclick="InsertTamanhoButton">Salvar</Button>
-   <Button Color="Color.Danger" @onclick="CancelTamanhoButton">Cancelar</Button>
-  </ModalFooter>
- </ModalContent>
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Adicionar um novo tamanho</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="TamanhoNome" class="form-label">Tamanho</Label>
+                <input type="text" class="form-control" id="TamanhoNome" @bind-value="NovoTamanhoNome" placeholder="Insira o nome do tamanho"/>
+                <Label for="TamanhoDescricao" class="form-label">Descrição</Label>
+                <input type="text" class="form-control" id="TamanhoDescricao" @bind-value="NovoTamanhoDescricao" placeholder="Insira a descrição do tamanho"/>
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="InsertTamanhoButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelTamanhoButton">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
 </Modal>
 
 <Modal @ref="modalAtualizarTamanho">
- <ModalContent Size="ModalSize.Default" Centered="true">
-  <ModalHeader>
-   <strong>Atualizar Tamanho</strong>
-  </ModalHeader>
-  <ModalBody>
-   <Field>
-    <Label for="TamanhoNome" class="form-label">Tamanho</Label>
-    <input type="text" class="form-control" id="TamanhoNome" @bind-value="NovoTamanhoNome" placeholder="Insira o nome do tamanho"/>
-    <Label for="TamanhoDescricao" class="form-label">Descrição</Label>
-    <input type="text" class="form-control" id="TamanhoDescricao" @bind-value="NovoTamanhoDescricao" placeholder="Insira a descrição do tamanho"/>
-   </Field>
-  </ModalBody>
-  <ModalFooter>
-   <Button Color="Color.Success" @onclick="UpdateTamanhoButton">Salvar</Button>
-   <Button Color="Color.Danger" @onclick="CancelTamanhoButton">Cancelar</Button>
-  </ModalFooter>
- </ModalContent>
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Atualizar Tamanho</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="TamanhoNome" class="form-label">Tamanho</Label>
+                <input type="text" class="form-control" id="TamanhoNome" @bind-value="NovoTamanhoNome" placeholder="Insira o nome do tamanho"/>
+                <Label for="TamanhoDescricao" class="form-label">Descrição</Label>
+                <input type="text" class="form-control" id="TamanhoDescricao" @bind-value="NovoTamanhoDescricao" placeholder="Insira a descrição do tamanho"/>
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="UpdateTamanhoButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelTamanhoButton">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
 </Modal>
 
 <Modal @ref="modalDeletarTamanho">
- <ModalContent Size="ModalSize.Default" Centered="true">
-  <ModalHeader>
-   <strong>Deletar Tamanho</strong>
-  </ModalHeader>
-  <ModalBody>
-   @if (tamanhoSelecionado != null)
-   {
-    <p>Tem certeza que deseja deleta o tamanho @tamanhoSelecionado.Nome?</p>
-   }
-  </ModalBody>
-  <ModalFooter>
-   <Button class="btn btn-danger" @onclick="DeleteTamanhoButton">Deletar</Button>
-   <Button class="btn btn-secondary" @onclick="CancelTamanhoButton">Cancelar</Button>
-  </ModalFooter>
- </ModalContent>
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Deletar Tamanho</strong>
+        </ModalHeader>
+        <ModalBody>
+            @if (tamanhoSelecionado != null)
+            {
+                <p>Tem certeza que deseja deletar o tamanho @tamanhoSelecionado.Nome?</p>
+            }
+        </ModalBody>
+        <ModalFooter>
+            <Button class="btn btn-danger" @onclick="DeleteTamanhoButton">Deletar</Button>
+            <Button class="btn btn-secondary" @onclick="CancelTamanhoButton">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
 </Modal>
 
 @code
 {
- private List<Tamanho> tamanhos;
- private Modal modalCriarTamanho = new Modal();
- private Modal modalAtualizarTamanho = new Modal();
- private Modal modalDeletarTamanho = new Modal();
- private Tamanho tamanhoSelecionado;
- private string atualizarTamanhoNome;
- private string atualizarTamanhoDescricao;
- private string NovoTamanhoNome;
- private string NovoTamanhoDescricao;
+    private List<Tamanho> tamanhos;
+    private Modal modalCriarTamanho = new Modal();
+    private Modal modalAtualizarTamanho = new Modal();
+    private Modal modalDeletarTamanho = new Modal();
+    private Tamanho tamanhoSelecionado;
+    private string atualizarTamanhoNome;
+    private string atualizarTamanhoDescricao;
+    private string NovoTamanhoNome;
+    private string NovoTamanhoDescricao;
 
- protected override async Task OnInitializedAsync()
- {
-  tamanhos = await TamanhoService.GetTamanhos();
- }
- 
- protected override async Task OnAfterRenderAsync(bool firstRender)
- {
-  if (firstRender)
-  {
-   modalCriarTamanho ??= new Modal();
-   modalAtualizarTamanho ??= new Modal();
-   modalDeletarTamanho ??= new Modal();
-  }
- }
+    protected override async Task OnInitializedAsync()
+    {
+        tamanhos = await TamanhoService.GetTamanhos();
+    }
 
- private void OpenAddTamanhoModal()
- {
-  NovoTamanhoNome = string.Empty;
-  NovoTamanhoDescricao = string.Empty;
-  modalCriarTamanho.Show();
- }
+    private void OpenAddTamanhoModal()
+    {
+        NovoTamanhoNome = string.Empty;
+        NovoTamanhoDescricao = string.Empty;
+        modalCriarTamanho.Show();
+    }
 
- private void OpenUpdateTamanhoModal(Tamanho tamanho)
- {
-  tamanhoSelecionado = tamanho;
-  NovoTamanhoNome = tamanho.Nome;
-  NovoTamanhoDescricao = tamanho.Descricao;
-  modalAtualizarTamanho.Show();
- }
+    private void OpenUpdateTamanhoModal(Tamanho tamanho)
+    {
+        tamanhoSelecionado = tamanho;
+        NovoTamanhoNome = tamanho.Nome;
+        NovoTamanhoDescricao = tamanho.Descricao;
+        modalAtualizarTamanho.Show();
+    }
 
- private void CancelTamanhoButton()
- {
-  NovoTamanhoNome = string.Empty;
-  NovoTamanhoDescricao = string.Empty;
-  modalCriarTamanho.Hide();
-  modalAtualizarTamanho.Hide();
-  modalDeletarTamanho.Hide();
- }
+    private void CancelTamanhoButton()
+    {
+        NovoTamanhoNome = string.Empty;
+        NovoTamanhoDescricao = string.Empty;
+        modalCriarTamanho.Hide();
+        modalAtualizarTamanho.Hide();
+        modalDeletarTamanho.Hide();
+    }
 
- private async Task InsertTamanhoButton()
- {
-  Tamanho tamanho = new Tamanho
-  {
-   Nome = NovoTamanhoNome,
-   Descricao = NovoTamanhoDescricao,
-   DataInsercao = DateTime.Now
-  };
-  await TamanhoService.AddTamanho(tamanho);
-  tamanhos = await TamanhoService.GetTamanhos();
-  modalCriarTamanho.Hide();
- }
+    private async Task InsertTamanhoButton()
+    {
+        Tamanho tamanho = new Tamanho
+        {
+            Nome = NovoTamanhoNome,
+            Descricao = NovoTamanhoDescricao,
+            DataInsercao = DateTime.Now
+        };
+        await TamanhoService.AddTamanho(tamanho);
+        tamanhos = await TamanhoService.GetTamanhos();
+        modalCriarTamanho.Hide();
+    }
 
- private async Task UpdateTamanhoButton()
- {
-   tamanhoSelecionado.Nome = atualizarTamanhoNome;
-   tamanhoSelecionado.Descricao = atualizarTamanhoDescricao;
-   await TamanhoService.UpdateTamanho(tamanhoSelecionado);
-   tamanhos = await TamanhoService.GetTamanhos();
-   modalAtualizarTamanho.Hide();
- }
+    private async Task UpdateTamanhoButton()
+    {
+        tamanhoSelecionado.Nome = atualizarTamanhoNome;
+        tamanhoSelecionado.Descricao = atualizarTamanhoDescricao;
+        await TamanhoService.UpdateTamanho(tamanhoSelecionado);
+        tamanhos = await TamanhoService.GetTamanhos();
+        modalAtualizarTamanho.Hide();
+    }
 
- private void OptionDeleteTamanhoButton(Tamanho tamanho)
- {
-  tamanhoSelecionado = tamanho;
-  modalDeletarTamanho.Show();
- }
+    private void OptionDeleteTamanhoButton(Tamanho tamanho)
+    {
+        tamanhoSelecionado = tamanho;
+        modalDeletarTamanho.Show();
+    }
 
- private async Task DeleteTamanhoButton()
- {
-  await TamanhoService.DeleteTamanho(tamanhoSelecionado.Id);
-  tamanhos = await TamanhoService.GetTamanhos();
-  modalDeletarTamanho.Hide();
- }
+    private async Task DeleteTamanhoButton()
+    {
+        await TamanhoService.DeleteTamanho(tamanhoSelecionado.Id);
+        tamanhos = await TamanhoService.GetTamanhos();
+        modalDeletarTamanho.Hide();
+    }
 }

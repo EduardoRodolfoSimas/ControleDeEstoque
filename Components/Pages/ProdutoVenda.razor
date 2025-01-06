@@ -37,7 +37,12 @@
                 </Div>
                 <DataGrid TItem="Venda"
                           Data="@(vendasPorDia.ElementAtOrDefault(currentPage).Value ?? new List<Venda>())"
+                          @bind-SelectedRow="VendaSelecionada"
                           Striped="true"
+                          Editable
+                          Responsive
+                          CommandMode="DataGridCommandMode.ButtonRow"
+                          EditMode="DataGridEditMode.Popup"
                           CurrentPage="currentPage">
                     <DataGridColumns>
                         <DataGridColumn TItem="Venda" Field="@nameof(Venda.ProdutoNome)" Caption="Produto"/>
@@ -78,8 +83,14 @@
         <ModalBody>
             <Field>
                 <FieldLabel>Código do Produto</FieldLabel>
-                <TextEdit @bind-Text="ProdutoSku" Placeholder="Insira o código do produto" />
-                <Button Clicked="PesquisarVendaProduto">Pesquisar</Button>
+                <Addons>
+                    <Addon AddonType.Body>
+                        <TextEdit @bind-Text="ProdutoSku" Placeholder="Insira o código do produto"/>
+                    </Addon>
+                    <Addon AddonType="AddonType.End">
+                        <Button Clicked="PesquisarVendaProduto">Pesquisar</Button>
+                    </Addon>
+                </Addons>
             </Field>
             <Field>
                 <FieldLabel>Nome do Produto</FieldLabel>
@@ -107,6 +118,19 @@
     </ModalContent>
 </Modal>
 
+<Modal @ref="ModalAtualizarVenda">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Atualizar Venda</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="Venda" class="form-label"></Label>
+            </Field>
+        </ModalBody>
+    </ModalContent>
+</Modal>
+
 @code {
     private string ProdutoSku;
     private string ProdutoNome;
@@ -116,7 +140,9 @@
     private List<Produto> produtos;
     private Dictionary<DateTime, List<Venda>> vendasPorDia = new Dictionary<DateTime, List<Venda>>();
     private Modal ModalRegistrarVenda;
+    private Modal ModalAtualizarVenda;
     private Produto produto;
+    private Venda VendaSelecionada;
     private int currentPage = 0;
     private int VendasPorDiaCount => vendasPorDia.Count;
     private DatePicker<DateTime?> datePicker;

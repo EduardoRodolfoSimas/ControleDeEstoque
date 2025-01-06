@@ -5,8 +5,8 @@ namespace ControleDeEstoque.Model;
 
 public class Venda
 {
-    public int Id { get; set; }
-
+    public int Id { get; init; }
+    
     public string ProdutoSku { get; set; }
     public string ProdutoNome { get; set; }
     public int? CategoriaId { get; set; }
