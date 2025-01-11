@@ -5,7 +5,7 @@ namespace ControleDeEstoque.Services.CategoriaService;
 public class CategoriaService : ICategoriaService.ICategoriaService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://apicontroledeestoque-bja4ardjcrftahcp.brazilsouth-01.azurewebsites.net/categoria";
+    private const string ApiUrl = "https://xn--produoapicontroledeestoque-htbwcagua2g5c2hw-vtd3p.brazilsouth-01.azurewebsites.net/categoria";
 
     public CategoriaService(HttpClient httpClient)
     {

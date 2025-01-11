@@ -6,7 +6,7 @@ namespace ControleDeEstoque.Services.TamanhoService;
 public class TamanhoService : ITamanhoService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://apicontroledeestoque-bja4ardjcrftahcp.brazilsouth-01.azurewebsites.net/tamanho";
+    private const string ApiUrl = "https://xn--produoapicontroledeestoque-htbwcagua2g5c2hw-vtd3p.brazilsouth-01.azurewebsites.net/tamanho";
 
     public TamanhoService(HttpClient httpClient)
     {
