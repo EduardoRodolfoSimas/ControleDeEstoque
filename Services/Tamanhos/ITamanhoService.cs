@@ -1,11 +1,11 @@
-using ControleDeEstoque.Model;
+using ControleDeEstoque.DTOs.TamanhoDto;
 
-namespace ControleDeEstoque.Services.Tamanhos;
+namespace ControleDeEstoque.Services.ITamanhos;
 
 public interface ITamanhoService
 {
-    Task<List<Tamanho>> GetTamanhos();
-    Task<Tamanho> AddTamanho(Tamanho tamanho);
-    Task<Tamanho> UpdateTamanho(Tamanho tamanho);
-    Task<Tamanho> DeleteTamanho(int id);
+    Task<List<TamanhoDto>> ListarTamanhos();
+    Task<TamanhoDto> AdicionarTamanho(TamanhoDto tamanhoDto);
+    Task<TamanhoDto> AtualizarTamanho(TamanhoDto tamanhoDto);
+    Task<TamanhoDto> DeletarTamanho(Guid id);
 }

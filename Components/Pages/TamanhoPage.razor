@@ -1,11 +1,11 @@
 @page "/Tamanho"
 
-@using ControleDeEstoque.Model
-@using ControleDeEstoque.Services.Tamanhos
 @inject ITamanhoService TamanhoService
 @rendermode InteractiveServer
 @using Blazorise.DataGrid
 @using Blazorise
+@using ControleDeEstoque.DTOs.TamanhoDto
+@using ControleDeEstoque.Services.ITamanhos
 
 <h3>Cadastro de Tamanhos</h3>
 
@@ -27,9 +27,9 @@ else
                             <Button Color="Color.Primary" @onclick="OpenAddTamanhoModal">Novo Tamanho</Button>
                         </Div>
                     </Div>
-                    <DataGrid TItem="Tamanho"
+                    <DataGrid TItem="TamanhoDto"
                               Data="tamanhos"
-                              @bind-SelectedRow="tamanhoSelecionado"
+                              @bind-SelectedRow="_tamanhoDtoSelecionado"
                               Striped="true"
                               Editable
                               Responsive
@@ -45,14 +45,14 @@ else
                                         <Button ElementId="btnCancel" Color="Color.Secondary" Clicked="@context.Clicked">@context.LocalizationString</Button>
                                     </CancelCommandTemplate>
                                 </DataGridCommandColumn>
-                            <DataGridColumn TItem="Tamanho" Field="@nameof(Tamanho.Id)" Caption="Código"/>
-                            <DataGridColumn TItem="Tamanho" Field="@nameof(Tamanho.Nome)" Caption="Tamanho" Editable/>
-                            <DataGridColumn TItem="Tamanho" Field="@nameof(Tamanho.Descricao)" Caption="Descrição" Editable/>
+                            <DataGridColumn TItem="TamanhoDto" Field="@nameof(TamanhoDto.Id)" Caption="Código"/>
+                            <DataGridColumn TItem="TamanhoDto" Field="@nameof(TamanhoDto.Nome)" Caption="Tamanho" Editable/>
+                            <DataGridColumn TItem="TamanhoDto" Field="@nameof(TamanhoDto.Descricao)" Caption="Descrição" Editable/>
                         </DataGridColumns>
                         <ButtonRowTemplate>
-                            <Button Color="Color.Success" Clicked="() => OpenUpdateTamanhoModal(tamanhoSelecionado)">New</Button>
-                            <Button Color="Color.Primary" Disabled="(tamanhoSelecionado is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
-                            <Button Color="Color.Danger" Disabled="(tamanhoSelecionado is null)" Clicked="context.DeleteCommand.Clicked">Delete</Button>
+                            <Button Color="Color.Success" Clicked="() => OpenUpdateTamanhoModal(_tamanhoDtoSelecionado)">New</Button>
+                            <Button Color="Color.Primary" Disabled="(_tamanhoDtoSelecionado is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+                            <Button Color="Color.Danger" Disabled="(_tamanhoDtoSelecionado is null)" Clicked="context.DeleteCommand.Clicked">Delete</Button>
                             <Button Color="Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
                         </ButtonRowTemplate>
                     </DataGrid>
@@ -108,9 +108,9 @@ else
             <strong>Deletar Tamanho</strong>
         </ModalHeader>
         <ModalBody>
-            @if (tamanhoSelecionado != null)
+            @if (_tamanhoDtoSelecionado != null)
             {
-                <p>Tem certeza que deseja deletar o tamanho @tamanhoSelecionado.Nome?</p>
+                <p>Tem certeza que deseja deletar o tamanho @_tamanhoDtoSelecionado.Nome?</p>
             }
         </ModalBody>
         <ModalFooter>
@@ -122,11 +122,11 @@ else
 
 @code
 {
-    private List<Tamanho> tamanhos;
+    private List<TamanhoDto> tamanhos;
     private Modal modalCriarTamanho = new Modal();
     private Modal modalAtualizarTamanho = new Modal();
     private Modal modalDeletarTamanho = new Modal();
-    private Tamanho tamanhoSelecionado;
+    private TamanhoDto _tamanhoDtoSelecionado;
     private string atualizarTamanhoNome;
     private string atualizarTamanhoDescricao;
     private string NovoTamanhoNome;
@@ -134,7 +134,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        tamanhos = await TamanhoService.GetTamanhos();
+        tamanhos = await TamanhoService.ListarTamanhos();
     }
 
     private void OpenAddTamanhoModal()
@@ -144,11 +144,11 @@ else
         modalCriarTamanho.Show();
     }
 
-    private void OpenUpdateTamanhoModal(Tamanho tamanho)
+    private void OpenUpdateTamanhoModal(TamanhoDto tamanhoDto)
     {
-        tamanhoSelecionado = tamanho;
-        NovoTamanhoNome = tamanho.Nome;
-        NovoTamanhoDescricao = tamanho.Descricao;
+        _tamanhoDtoSelecionado = tamanhoDto;
+        NovoTamanhoNome = tamanhoDto.Nome;
+        NovoTamanhoDescricao = tamanhoDto.Descricao;
         modalAtualizarTamanho.Show();
     }
 
@@ -163,36 +163,35 @@ else
 
     private async Task InsertTamanhoButton()
     {
-        Tamanho tamanho = new Tamanho
+        TamanhoDto tamanhoDto = new TamanhoDto
         {
             Nome = NovoTamanhoNome,
             Descricao = NovoTamanhoDescricao,
-            DataInsercao = DateTime.Now
         };
-        await TamanhoService.AddTamanho(tamanho);
-        tamanhos = await TamanhoService.GetTamanhos();
+        await TamanhoService.AdicionarTamanho(tamanhoDto);
+        tamanhos = await TamanhoService.ListarTamanhos();
         modalCriarTamanho.Hide();
     }
 
     private async Task UpdateTamanhoButton()
     {
-        tamanhoSelecionado.Nome = atualizarTamanhoNome;
-        tamanhoSelecionado.Descricao = atualizarTamanhoDescricao;
-        await TamanhoService.UpdateTamanho(tamanhoSelecionado);
-        tamanhos = await TamanhoService.GetTamanhos();
+        _tamanhoDtoSelecionado.Nome = atualizarTamanhoNome;
+        _tamanhoDtoSelecionado.Descricao = atualizarTamanhoDescricao;
+        await TamanhoService.AtualizarTamanho(_tamanhoDtoSelecionado);
+        tamanhos = await TamanhoService.ListarTamanhos();
         modalAtualizarTamanho.Hide();
     }
 
-    private void OptionDeleteTamanhoButton(Tamanho tamanho)
+    private void OptionDeleteTamanhoButton(TamanhoDto tamanhoDto)
     {
-        tamanhoSelecionado = tamanho;
+        _tamanhoDtoSelecionado = tamanhoDto;
         modalDeletarTamanho.Show();
     }
 
     private async Task DeleteTamanhoButton()
     {
-        await TamanhoService.DeleteTamanho(tamanhoSelecionado.Id);
-        tamanhos = await TamanhoService.GetTamanhos();
+        await TamanhoService.DeletarTamanho(_tamanhoDtoSelecionado.Id);
+        tamanhos = await TamanhoService.ListarTamanhos();
         modalDeletarTamanho.Hide();
     }
 }

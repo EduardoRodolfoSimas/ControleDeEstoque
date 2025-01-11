@@ -1,9 +1,8 @@
 @page "/Categoria"
-@using ControleDeEstoque.Model
-@using ControleDeEstoque.Services
-@inject ICategoriaService CategoriaService
-@rendermode InteractiveServer
 @using Blazorise
+@using ControleDeEstoque.Model
+@using ControleDeEstoque.Services.ICategoriaService
+@inject ICategoriaService CategoriaService
 
 <h3>Cadastro de Categorias</h3>
 
@@ -32,16 +31,15 @@ else
                 <td>@categoria.Nome</td>
                 <td>@categoria.Descricao</td>
                 <td>
-                    <button class="btn btn-warning" @onclick="() => OpenUpdateCategoriaModal(categoria)">Atualizar
-                    </button>
-                    <button class="btn btn-danger" @onclick="() => OptionDeleteCategoriaButton(categoria)">Deletar
-                    </button>
+                    <button class="btn btn-warning" @onclick="() => OpenUpdateCategoriaModal(categoria)">Atualizar</button>
+                    <button class="btn btn-danger" @onclick="() => OpenDeleteCategoriaModal(categoria)">Deletar</button>
                 </td>
             </tr>
         }
         </tbody>
     </table>
 }
+
 <Modal @ref="modalCriarCategoria">
     <ModalContent Size="ModalSize.Default" Centered="true">
         <ModalHeader>
@@ -58,8 +56,8 @@ else
             </Field>
         </ModalBody>
         <ModalFooter>
-            <Button Color="Color.Success" @onclick="InsertCategoriaButton">Salvar</Button>
-            <Button Color="Color.Danger" @onclick="CancelCategoriaButton">Cancelar</Button>
+            <Button Color="Color.Success" @onclick="InsertCategoria">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CloseModalCriarCategoria">Cancelar</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
@@ -80,8 +78,8 @@ else
             </Field>
         </ModalBody>
         <ModalFooter>
-            <Button Color="Color.Success" @onclick="UpdateCategoriaButton">Salvar</Button>
-            <Button Color="Color.Danger" @onclick="CancelCategoriaButton">Cancelar</Button>
+            <Button Color="Color.Success" @onclick="UpdateCategoria">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CloseModalAtualizarCategoria">Cancelar</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
@@ -92,24 +90,24 @@ else
             <strong>Deletar categoria</strong>
         </ModalHeader>
         <ModalBody>
-            @if (categoriaSelecionada != null)
+            @if (_categoriaDtoSelecionada != null)
             {
-                <p>Tem certeza que deseja deletar a categoria @categoriaSelecionada.Nome?</p>
+                <p>Tem certeza que deseja deletar a categoria <strong>@_categoriaDtoSelecionada.Nome</strong>?</p>
             }
         </ModalBody>
         <ModalFooter>
-            <button class="btn btn-danger" @onclick="DeleteCategoria">Deletar</button>
-            <button class="btn btn-secondary" @onclick="CancelCategoriaButton">Cancelar</button>
+            <Button Color="Color.Danger" @onclick="DeleteCategoria">Deletar</Button>
+            <Button Color="Color.Secondary" @onclick="CloseModalDeletarCategoria">Cancelar</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
 
 @code {
-    private List<Categoria> categorias;
+    private List<CategoriaDto> categorias;
     private Modal modalCriarCategoria;
     private Modal modalAtualizarCategoria;
     private Modal modalDeletarCategoria;
-    private Categoria categoriaSelecionada;
+    private CategoriaDto _categoriaDtoSelecionada;
     private string NovoCategoriaNome;
     private string NovoCategoriaDescricao;
     private string AtualizarCategoriaNome;
@@ -117,76 +115,72 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        categorias = await CategoriaService.GetCategorias();
+        await CarregarCategorias();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task CarregarCategorias()
     {
-        if (firstRender)
-        {
-            modalCriarCategoria ??= new Modal();
-            modalAtualizarCategoria ??= new Modal();
-            modalDeletarCategoria ??= new Modal();
-        }
+        categorias = await CategoriaService.ListarCategorias();
     }
 
     private void OpenAddCategoriaModal()
     {
-        NovoCategoriaDescricao = string.Empty;
+        NovoCategoriaNome = string.Empty;
         NovoCategoriaDescricao = string.Empty;
         modalCriarCategoria.Show();
     }
 
-    private async Task InsertCategoriaButton()
+    private async Task InsertCategoria()
     {
-        Categoria categoria = new Categoria
+        var categoriaDto = new CategoriaDto
         {
             Nome = NovoCategoriaNome,
             Descricao = NovoCategoriaDescricao,
-            DataInsercao = DateTime.Now
         };
-        await CategoriaService.AddCategoria(categoria);
-        categorias = await CategoriaService.GetCategorias();
+
+        await CategoriaService.AdicionarCategoria(categoriaDto);
+        await CarregarCategorias();
         modalCriarCategoria.Hide();
     }
 
-    private void OpenUpdateCategoriaModal(Categoria categoria)
+    private void OpenUpdateCategoriaModal(CategoriaDto categoria)
     {
-        categoriaSelecionada = categoria;
+        _categoriaDtoSelecionada = categoria;
         AtualizarCategoriaNome = categoria.Nome;
         AtualizarCategoriaDescricao = categoria.Descricao;
         modalAtualizarCategoria.Show();
     }
 
-    private void OptionDeleteCategoriaButton(Categoria categoria)
+    private async Task UpdateCategoria()
     {
-        categoriaSelecionada = categoria;
+        if (_categoriaDtoSelecionada != null)
+        {
+            _categoriaDtoSelecionada.Nome = AtualizarCategoriaNome;
+            _categoriaDtoSelecionada.Descricao = AtualizarCategoriaDescricao;
+
+            await CategoriaService.AtualizarCategoria(_categoriaDtoSelecionada);
+            await CarregarCategorias();
+            modalAtualizarCategoria.Hide();
+        }
+    }
+
+    private void OpenDeleteCategoriaModal(CategoriaDto categoria)
+    {
+        _categoriaDtoSelecionada = categoria;
         modalDeletarCategoria.Show();
     }
 
     private async Task DeleteCategoria()
     {
-        await CategoriaService.DeleteCategoria(categoriaSelecionada.Id);
-        categorias = await CategoriaService.GetCategorias();
-        modalDeletarCategoria.Hide();
+        if (_categoriaDtoSelecionada != null)
+        {
+            await CategoriaService.DeletarCategoria(_categoriaDtoSelecionada.Id);
+            await CarregarCategorias();
+            modalDeletarCategoria.Hide();
+        }
     }
 
-    private void CancelCategoriaButton()
-    {
-        NovoCategoriaNome = string.Empty;
-        NovoCategoriaDescricao = string.Empty;
-        modalCriarCategoria.Hide();
-        modalAtualizarCategoria.Hide();
-        modalDeletarCategoria.Hide();
-    }
-
-    private async Task UpdateCategoriaButton()
-    {
-        categoriaSelecionada.Nome = AtualizarCategoriaNome;
-        categoriaSelecionada.Descricao = AtualizarCategoriaDescricao;
-        await CategoriaService.UpdateCategoria(categoriaSelecionada);
-        categorias = await CategoriaService.GetCategorias();
-        modalAtualizarCategoria.Hide();
-    }
-
+    private void CloseModalCriarCategoria() => modalCriarCategoria.Hide();
+    private void CloseModalAtualizarCategoria() => modalAtualizarCategoria.Hide();
+    private void CloseModalDeletarCategoria() => modalDeletarCategoria.Hide();
 }

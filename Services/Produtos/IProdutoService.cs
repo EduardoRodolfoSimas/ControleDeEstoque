@@ -1,12 +1,12 @@
-using ControleDeEstoque.Model;
+﻿using ControleDeEstoque.DTOs.ProdutoDto;
 
-namespace ControleDeEstoque.Services;
+namespace ControleDeEstoque.Services.IProdutoService;
 
 public interface IProdutoService
 {
-    Task<List<Produto>> GetProdutos();
-    Task<Produto> AddProduto(Produto produto);
-    Task<Produto> UpdateProduto(Produto produto);
-    Task<Produto> DeleteProduto(int id);
-    Task<bool> SkuExists(string sku);
+    Task<List<ProdutoDto>> ListarProdutos();
+    Task<ProdutoDto> AdicionarProduto(ProdutoDto produto);
+    Task<ProdutoDto> AtualizarProduto(ProdutoDto produto);
+    Task<ProdutoDto> DeletarProduto(Guid id);
 }
+

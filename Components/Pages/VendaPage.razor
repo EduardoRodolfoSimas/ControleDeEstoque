@@ -1,0 +1,165 @@
+@page "/venda"
+@using ControleDeEstoque.Model
+@using ControleDeEstoque.Services
+@using Blazorise
+@using ControleDeEstoque.DTOs.VendaDto
+@using ControleDeEstoque.DTOs.VendaItemDto
+@using ControleDeEstoque.Services.Vendas
+@inject IVendasService VendasService
+@rendermode InteractiveServer
+
+<h3>Registro de Vendas</h3>
+
+@if (vendas == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Código da Venda</th>
+            <th>Data da Venda</th>
+            <th>Forma de Pagamento</th>
+            <th>Valor Total</th>
+            <th><button class="btn btn-primary" @onclick="OpenAddVendaModal">Nova Venda</button></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var venda in vendas)
+        {
+            <tr>
+                <td>@venda.Id</td>
+                <td>@venda.DataVenda.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@venda.MetodoPagamento</td>
+                <td>R$: @venda.ValorTotal.ToString("F2")</td>
+                <td>
+                    <button class="btn btn-warning" @onclick="() => OpenUpdateVendaModal(venda)">Atualizar</button>
+                    <button class="btn btn-danger" @onclick="() => OptionDeleteVendaButton(venda)">Deletar</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<Modal @ref="modalCriarVenda">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Adicionar uma nova venda</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="VendaMetodoPagamento" class="form-label">Método de Pagamento</Label>
+                <Dropdown>
+                    <DropdownToggle Color="Color.Default" Size="Size.Medium">
+                        @metodoPagamento ?? "Selecionar método"
+                    </DropdownToggle>
+               <!--     <DropdownMenu>
+                        <DropdownItem @onclick="() => metodoPagamento = 'Crédito'">Crédito</DropdownItem>
+                        <DropdownItem @onclick="() => metodoPagamento = 'Débito'">Débito</DropdownItem>
+                        <DropdownItem @onclick="() => metodoPagamento = 'Dinheiro'">Dinheiro</DropdownItem>
+                        <DropdownItem @onclick="() => metodoPagamento = 'Pix'">Pix</DropdownItem>
+                    </DropdownMenu> -->
+                </Dropdown>
+
+                <Label for="VendaValorTotal" class="form-label">Valor Total</Label>
+                <input type="number" class="form-control" @bind="valorTotal" placeholder="Valor Total" />
+
+                <Label for="VendaItens" class="form-label">Itens da Venda</Label>
+                <TextArea @bind-Text="itensVenda" placeholder="Descreva os itens da venda" />
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="InsertVendaButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelVendaButton">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<!-- Outros modais omitidos por redundância -->
+
+@code {
+    private string metodoPagamento;
+    private decimal valorTotal;
+    private string itensVenda;
+
+    private Modal modalCriarVenda;
+    private Modal modalAtualizarVenda;
+    private Modal modalExcluirVenda;
+
+    private List<VendaDto> vendas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        vendas = await VendasService.ListarVendas();
+    }
+
+    private void OpenAddVendaModal()
+    {
+        metodoPagamento = string.Empty;
+        valorTotal = 0;
+        itensVenda = string.Empty;
+        modalCriarVenda.Show();
+    }
+
+    private async Task InsertVendaButton()
+    {
+        if (string.IsNullOrWhiteSpace(metodoPagamento))
+        {
+            // Mostrar mensagem de erro (opcional)
+            return;
+        }
+
+        var novaVenda = new VendaDto
+        {
+            MetodoPagamento = metodoPagamento,
+            ValorTotal = valorTotal,
+            Itens = ParseItensVenda(itensVenda)
+        };
+
+        await VendasService.AdicionarVenda(novaVenda);
+        await LoadDataAsync();
+        modalCriarVenda.Hide();
+    }
+
+    private List<VendaItemDto> ParseItensVenda(string itens)
+    {
+        var itensList = new List<VendaItemDto>();
+        // Aqui você pode transformar a string de itens em uma lista de VendaItemDto
+        // Exemplo simples: separar por vírgulas e gerar um item fictício
+        foreach (var item in itens.Split(','))
+        {
+           // itensList.Add(new VendaItemDto { Nome = item.Trim() });
+        }
+        return itensList;
+    }
+
+    private void CancelVendaButton()
+    {
+        modalCriarVenda.Hide();
+        modalAtualizarVenda.Hide();
+        modalExcluirVenda.Hide();
+    }
+
+    private void OpenUpdateVendaModal(VendaDto vendaDto)
+    {
+        // Preencher os campos com os dados da venda a ser atualizada
+        metodoPagamento = vendaDto.MetodoPagamento;
+        valorTotal = vendaDto.ValorTotal;
+        //itensVenda = string.Join(", ", vendaDto.Itens.Select(i => i.Nome));
+        modalAtualizarVenda.Show();
+    }
+
+    private void OptionDeleteVendaButton(VendaDto vendaDto)
+    {
+        // Preparar a venda para exclusão
+        modalExcluirVenda.Show();
+    }
+}

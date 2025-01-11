@@ -1,47 +1,43 @@
-using ControleDeEstoque.Data;
 using ControleDeEstoque.Model;
-using Microsoft.EntityFrameworkCore;
 
-namespace ControleDeEstoque.Services.Categorias;
+namespace ControleDeEstoque.Services.CategoriaService;
 
-public class CategoriaService : ICategoriaService
+public class CategoriaService : ICategoriaService.ICategoriaService
 {
-    private readonly DataBaseContext _context;
+    private readonly HttpClient _httpClient;
+    private const string ApiUrl = "https://apicontroledeestoque-bja4ardjcrftahcp.brazilsouth-01.azurewebsites.net/categoria";
 
-    public CategoriaService(DataBaseContext context)
+    public CategoriaService(HttpClient httpClient)
     {
-        _context = context;
+        _httpClient = httpClient;
     }
 
-    public async Task<Categoria> AddCategoria(Categoria categoria)
+    public async Task<List<CategoriaDto>> ListarCategorias()
     {
-        _context.Categorias.Add(categoria);
-        await _context.SaveChangesAsync();
-        return categoria;
+        return await _httpClient.GetFromJsonAsync<List<CategoriaDto>>(ApiUrl) ?? new List<CategoriaDto>();
     }
 
-    public async Task<Categoria> DeleteCategoria(int id)
+    public async Task<CategoriaDto> AdicionarCategoria(CategoriaDto categoria)
     {
-        var categoria = await _context.Categorias.FindAsync(id);
-        if (categoria == null)
+        var response = await _httpClient.PostAsJsonAsync(ApiUrl, categoria);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<CategoriaDto>();
+    }
+
+    public async Task<CategoriaDto> AtualizarCategoria(CategoriaDto categoria)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"{ApiUrl}/{categoria.Id}", categoria);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<CategoriaDto>();
+    }
+
+    public async Task<CategoriaDto?> DeletarCategoria(Guid id)
+    {
+        var response = await _httpClient.DeleteAsync($"{ApiUrl}/{id}");
+        if (response.IsSuccessStatusCode)
         {
-            return null;
+            return await response.Content.ReadFromJsonAsync<CategoriaDto>();
         }
-        _context.Categorias.Remove(categoria);
-        await _context.SaveChangesAsync();
-        return categoria;
+        return null;
     }
-    
-    public async Task<List<Categoria>> GetCategorias()
-    {
-        return await _context.Categorias.ToListAsync();
-    }
-
-    public async Task<Categoria> UpdateCategoria(Categoria categoria)
-    {
-        _context.Entry(categoria).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        return categoria;
-    }
-    
 }

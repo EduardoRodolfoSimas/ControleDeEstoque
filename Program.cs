@@ -1,28 +1,29 @@
 using ControleDeEstoque.Components;
-using ControleDeEstoque.Data;
-using ControleDeEstoque.Services;
-using ControleDeEstoque.Services.Produtos;
-using ControleDeEstoque.Services.Categorias;
+using ControleDeEstoque.Services.ProdutoService;
 using ControleDeEstoque.Services.Vendas;
-using ControleDeEstoque.Services.Tamanhos;
-using Microsoft.EntityFrameworkCore;
 using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
+using ControleDeEstoque.Services.CategoriaService;
+using ControleDeEstoque.Services.ICategoriaService;
+using ControleDeEstoque.Services.IProdutoService;
+using ControleDeEstoque.Services.ITamanhos;
+using ControleDeEstoque.Services.TamanhoService;
+using ControleDeEstoque.Services.VendasService;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddDbContext<DataBaseContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();   
-builder.Services.AddScoped<IVendasService, VendaService>();
+builder.Services.AddScoped<IVendasService, VendasService>();
 builder.Services.AddScoped<ITamanhoService, TamanhoService>();
+builder.Services.AddHttpClient("API", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseAddress"]);
+});
 
 builder.Services.AddBlazorise(options =>
 {
@@ -33,13 +34,6 @@ builder.Services.AddFontAwesomeIcons();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<DataBaseContext>();
-    context.Database.EnsureCreated();
-}
-
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

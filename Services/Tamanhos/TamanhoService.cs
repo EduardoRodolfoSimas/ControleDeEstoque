@@ -1,48 +1,44 @@
-using ControleDeEstoque.Data;
-using ControleDeEstoque.Model;
-using Microsoft.EntityFrameworkCore;
+using ControleDeEstoque.DTOs.TamanhoDto;
+using ControleDeEstoque.Services.ITamanhos;
 
-namespace ControleDeEstoque.Services.Tamanhos;
+namespace ControleDeEstoque.Services.TamanhoService;
 
 public class TamanhoService : ITamanhoService
 {
-    private readonly DataBaseContext _context;
+    private readonly HttpClient _httpClient;
+    private const string ApiUrl = "https://apicontroledeestoque-bja4ardjcrftahcp.brazilsouth-01.azurewebsites.net/tamanho";
 
-    public TamanhoService(DataBaseContext context)
+    public TamanhoService(HttpClient httpClient)
     {
-        _context = context;
+        _httpClient = httpClient;
     }
 
-    public async Task<List<Tamanho>> GetTamanhos()
+    public async Task<List<TamanhoDto>> ListarTamanhos()
     {
-        return await _context.Tamanhos.ToListAsync();
+        return await _httpClient.GetFromJsonAsync<List<TamanhoDto>>(ApiUrl) ?? new List<TamanhoDto>();
     }
 
-    public async Task<Tamanho> AddTamanho(Tamanho tamanho)
+    public async Task<TamanhoDto> AdicionarTamanho(TamanhoDto tamanho)
     {
-        _context.Tamanhos.Add(tamanho);
-        await _context.SaveChangesAsync();
-        return tamanho;
+        var response = await _httpClient.PostAsJsonAsync(ApiUrl, tamanho);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<TamanhoDto>();
     }
 
-public async Task<Tamanho> UpdateTamanho(Tamanho tamanho)
+    public async Task<TamanhoDto> AtualizarTamanho(TamanhoDto tamanho)
     {
-        _context.Entry(tamanho).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        return tamanho;
+        var response = await _httpClient.PutAsJsonAsync($"{ApiUrl}/{tamanho.Id}", tamanho);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<TamanhoDto>();
     }
 
-    public async Task<Tamanho> DeleteTamanho(int id)
+    public async Task<TamanhoDto?> DeletarTamanho(Guid id)
     {
-        var tamanho = await _context.Tamanhos.FindAsync(id);
-        if (tamanho == null)
+        var response = await _httpClient.DeleteAsync($"{ApiUrl}/{id}");
+        if (response.IsSuccessStatusCode)
         {
-            return null;
+            return await response.Content.ReadFromJsonAsync<TamanhoDto>();
         }
-
-        _context.Tamanhos.Remove(tamanho);
-        await _context.SaveChangesAsync();
-        return tamanho;
+        return null;
     }
-    
 }

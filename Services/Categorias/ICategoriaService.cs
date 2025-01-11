@@ -1,12 +1,12 @@
 using ControleDeEstoque.Model;
 
-namespace ControleDeEstoque.Services;
+namespace ControleDeEstoque.Services.ICategoriaService;
 
 public interface ICategoriaService
 {
-    Task<List<Categoria>> GetCategorias();
-    Task<Categoria> AddCategoria(Categoria categoria);
-    Task<Categoria> UpdateCategoria(Categoria categoria);
-    Task<Categoria> DeleteCategoria(int id);
+    Task<List<CategoriaDto>> ListarCategorias();
+    Task<CategoriaDto> AdicionarCategoria(CategoriaDto categoriaDto);
+    Task<CategoriaDto> AtualizarCategoria(CategoriaDto categoriaDto);
+    Task<CategoriaDto> DeletarCategoria(Guid id);
     
 }

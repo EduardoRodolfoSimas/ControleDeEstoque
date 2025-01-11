@@ -1,61 +1,43 @@
-using ControleDeEstoque.Data;
-using ControleDeEstoque.Model;
-using Microsoft.EntityFrameworkCore;
+using ControleDeEstoque.DTOs.ProdutoDto;
 
-namespace ControleDeEstoque.Services.Produtos;
+namespace ControleDeEstoque.Services.ProdutoService;
 
-public class ProdutoService : IProdutoService
+public class ProdutoService : IProdutoService.IProdutoService
 {
-    private readonly DataBaseContext _context;
+    private readonly HttpClient _httpClient;
+    private const string ApiUrl = "https://apicontroledeestoque-bja4ardjcrftahcp.brazilsouth-01.azurewebsites.net/produto";
 
-    public ProdutoService(DataBaseContext context)
-    {   
-        _context = context;
+    public ProdutoService(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
     }
 
-    public async Task<List<Produto>> GetProdutos()
+    public async Task<List<ProdutoDto>> ListarProdutos()
     {
-        return await _context.Produtos.ToListAsync();
+        return await _httpClient.GetFromJsonAsync<List<ProdutoDto>>(ApiUrl) ?? new List<ProdutoDto>();
     }
 
-    public async Task<Produto> GetProduto(int id)
+    public async Task<ProdutoDto> AdicionarProduto(ProdutoDto produto)
     {
-        var produto = await _context.Produtos.FindAsync(id);
-        if (produto == null)
+        var response = await _httpClient.PostAsJsonAsync(ApiUrl, produto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<ProdutoDto>();
+    }
+
+    public async Task<ProdutoDto> AtualizarProduto(ProdutoDto produto)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"{ApiUrl}/{produto.Id}", produto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<ProdutoDto>();
+    }
+
+    public async Task<ProdutoDto?> DeletarProduto(Guid id)
+    {
+        var response = await _httpClient.DeleteAsync($"{ApiUrl}/{id}");
+        if (response.IsSuccessStatusCode)
         {
-            throw new Exception("Produto não achado");
+            return await response.Content.ReadFromJsonAsync<ProdutoDto>();
         }
-        return produto;
+        return null;
     }
-
-    public async Task<Produto> AddProduto(Produto produto)
-    {
-        _context.Produtos.Add(produto);
-        await _context.SaveChangesAsync();
-        return produto;
-    }
-
-    public async Task<Produto> UpdateProduto(Produto produto)
-    {
-        _context.Entry(produto).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        return produto;
-    }
-
-    public async Task<Produto> DeleteProduto(int id)
-    {
-        var produto = await _context.Produtos.FindAsync(id);
-        if (produto != null)
-        {
-            _context.Produtos.Remove(produto);
-            await _context.SaveChangesAsync();
-        }
-        return produto;
-    }
-    
-    public async Task<bool> SkuExists(string sku)
-    {
-        return await _context.Produtos.AnyAsync(p => p.Sku == sku);
-    }
-    
 }
