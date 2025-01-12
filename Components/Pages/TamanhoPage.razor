@@ -19,13 +19,13 @@ else
         <Column>
             <Card Margin="Margin.Is4.OnY">
                 <CardHeader>
-                    <CardTitle>Lista de Tamanhos</CardTitle>
+                    <CardTitle><strong><h3>Lista de Tamanhos</h3></strong></CardTitle>
                 </CardHeader>
                 <CardBody>
-                    <Div class="d-flex justify-content-between">
-                        <Div>
-                            <Button Color="Color.Primary" @onclick="OpenAddTamanhoModal">Novo Tamanho</Button>
-                        </Div>
+                    <Div class="ms-auto">
+                        <Button Color="Color.Primary" @onclick="AbrirModalAdicionarTamanho">Novo Tamanho</Button>
+                        <Button Color="Color.Success" Clicked="() => AbrirModalAtualizarTamanho(_tamanhoDtoSelecionado)">Atualizar</Button>
+                        <Button Color="Color.Danger" Clicked="() => OptionDeleteTamanhoButton(_tamanhoDtoSelecionado)">Excluir</Button>
                     </Div>
                     <DataGrid TItem="TamanhoDto"
                               Data="tamanhos"
@@ -50,7 +50,6 @@ else
                             <DataGridColumn TItem="TamanhoDto" Field="@nameof(TamanhoDto.Descricao)" Caption="Descrição" Editable/>
                         </DataGridColumns>
                         <ButtonRowTemplate>
-                            <Button Color="Color.Success" Clicked="() => OpenUpdateTamanhoModal(_tamanhoDtoSelecionado)">New</Button>
                             <Button Color="Color.Primary" Disabled="(_tamanhoDtoSelecionado is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
                             <Button Color="Color.Danger" Disabled="(_tamanhoDtoSelecionado is null)" Clicked="context.DeleteCommand.Clicked">Delete</Button>
                             <Button Color="Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
@@ -137,14 +136,14 @@ else
         tamanhos = await TamanhoService.ListarTamanhos();
     }
 
-    private void OpenAddTamanhoModal()
+    private void AbrirModalAdicionarTamanho()
     {
         NovoTamanhoNome = string.Empty;
         NovoTamanhoDescricao = string.Empty;
         modalCriarTamanho.Show();
     }
 
-    private void OpenUpdateTamanhoModal(TamanhoDto tamanhoDto)
+    private void AbrirModalAtualizarTamanho(TamanhoDto tamanhoDto)
     {
         _tamanhoDtoSelecionado = tamanhoDto;
         NovoTamanhoNome = tamanhoDto.Nome;

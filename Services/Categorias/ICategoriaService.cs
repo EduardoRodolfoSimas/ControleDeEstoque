@@ -1,4 +1,4 @@
-using ControleDeEstoque.Model;
+using ControleDeEstoque.DTOs.CategoriaDto;
 
 namespace ControleDeEstoque.Services.ICategoriaService;
 

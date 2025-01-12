@@ -1,4 +1,4 @@
-namespace ControleDeEstoque.Model;
+namespace ControleDeEstoque.DTOs.CategoriaDto;
 
 public class CategoriaDto
 {
