@@ -6,7 +6,7 @@ namespace ControleDeEstoque.Services.VendaItemService;
 public class VendaItemService : IVendaItemService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://apicontroledeestoque-bja4ardjcrftahcp.brazilsouth-01.azurewebsites.net/vendaitem";
+    private const string ApiUrl = "https://apicontroledeestoque-bja4ardjcrftahcp.brazilsouth-01.azurewebsites.net/vendas";
 
     public VendaItemService(HttpClient httpClient)
     {
