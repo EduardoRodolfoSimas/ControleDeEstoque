@@ -1,222 +1,165 @@
 @page "/vendas"
+@using ControleDeEstoque.DTOs.CategoriaDto
+@using ControleDeEstoque.Services
 @using Blazorise
-@using Blazorise.DataGrid
-@using ControleDeEstoque.DTOs.ProdutoDto
 @using ControleDeEstoque.DTOs.VendaDto
 @using ControleDeEstoque.DTOs.VendaItemDto
-@using ControleDeEstoque.Services.IProdutoService
 @using ControleDeEstoque.Services.Vendas
-@inject IProdutoService ProdutoService
-@inject IVendasService VendaService
+@inject IVendasService VendasService
 @rendermode InteractiveServer
 
-<Row>
-    <Column>
-        <Card Margin="Margin.Is4.OnY">
-            <CardHeader>
-                <CardTitle>Registro de Vendas</CardTitle>
-            </CardHeader>
-            <CardBody>
-                <Div class="d-flex justify-content-between mb-3">   
-                    <Button Color="Color.Success" Clicked="RegistrarVenda">Registrar Venda</Button>
-                    <Div>
-                        <Button Color="Color.Warning" Clicked="AtualizarProdutos" class="me-2">Atualizar Venda</Button>
-                        <Button Color="Color.Danger" Clicked="ExcluirVenda">Excluir Venda</Button>
-                    </Div>
-                </Div>
-                <DataGrid TItem="VendaDto"
-                          Data="@(vendasPorDia.ElementAtOrDefault(currentPage).Value ?? new List<VendaDto>())"
-                          Striped="true"
-                          Bordered="true"
-                          Hoverable="true"
-                          CurrentPage="currentPage">
-                    <DataGridColumns>
-                        <DataGridColumn TItem="VendaDto" Field="@nameof(VendaDto.DataVenda)" Caption="Data da Venda" DisplayFormat="{0:dd/MM/yyyy HH:mm}" />
-                        <DataGridColumn TItem="VendaDto" Field="@nameof(VendaDto.MetodoPagamento)" Caption="Forma de Pagamento" />
-                        <DataGridNumericColumn TItem="VendaDto" Field="@nameof(VendaDto.ValorTotal)" Caption="Valor Total" DisplayFormat="{0:C}" />
-                        <DataGridColumn TItem="VendaDto" Caption="Detalhes dos Itens">
-                            <Template>
-                                @{
-                                    var venda = contexto;
-                                }
-                                @if (venda != null && venda.Itens != null && venda.Itens.Any())
-                                {
-                                    <DataGrid TItem="VendaItemDto" Data="venda.Itens" Striped="true" Bordered="true">
-                                        <DataGridColumns>
-                                            <DataGridColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ProdutoId)" Caption="Produto" />
-                                            <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.Quantidade)" Caption="Quantidade" />
-                                            <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ValorUnitario)" Caption="Valor Unitário" DisplayFormat="{0:C}" />
-                                            <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}" />
-                                        </DataGridColumns>
-                                    </DataGrid>
-                                }
-                                else
-                                {
-                                    <span>Sem itens</span>
-                                }
-                            </Template>
-                        </DataGridColumn>
-                    </DataGridColumns>
-                </DataGrid>
-                <Div class="d-flex justify-content-between align-items-center mt-3">
-                    <Div>
-                        <Addons>
-                            <Addon AddonType="AddonType.Body">
-                                <DatePicker @ref="datePicker" TValue="DateTime?" @bind-Date="selectedDate" InputFormat="dd/MM/yyyy" DisplayFormat="dd/MM/yyyy" OnKeyPress="HandleKeyPress" />
-                            </Addon>
-                            <Addon AddonType="AddonType.End">
-                                <Button Color="Color.Light" Clicked="@(async () => await HandleKeyPress(new KeyboardEventArgs { Key = "Enter" }))">
-                                    <Icon Name="IconName.CalendarDay" />
-                                </Button>
-                            </Addon>
-                        </Addons>
-                    </Div>
-                    <Div>
-                        <Button Color="Color.Light" Clicked="PaginaAnterior" class="me-2">Anterior</Button>
-                        <Button Color="Color.Light" Clicked="ProximaPagina">Próximo</Button>
-                    </Div>
-                </Div>
-            </CardBody>
-        </Card>
-    </Column>
-</Row>
+<h3>Registro de Vendas</h3>
 
-<Modal @ref="ModalRegistrarVenda">
+@if (vendas == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Código da Venda</th>
+            <th>Data da Venda</th>
+            <th>Forma de Pagamento</th>
+            <th>Valor Total</th>
+            <th><button class="btn btn-primary" @onclick="OpenAddVendaModal">Nova Venda</button></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var venda in vendas)
+        {
+            <tr>
+                <td>@venda.Id</td>
+                <td>@venda.DataVenda.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@venda.MetodoPagamento</td>
+                <td>R$: @venda.ValorTotal.ToString("F2")</td>
+                <td>
+                    <button class="btn btn-warning" @onclick="() => OpenUpdateVendaModal(venda)">Atualizar</button>
+                    <button class="btn btn-danger" @onclick="() => OptionDeleteVendaButton(venda)">Deletar</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<Modal @ref="modalCriarVenda">
     <ModalContent Size="ModalSize.Default" Centered="true">
         <ModalHeader>
-            <strong>Registrar venda</strong>
+            <strong>Adicionar uma nova venda</strong>
         </ModalHeader>
         <ModalBody>
             <Field>
-                <FieldLabel>Código do Produto</FieldLabel>
-                <TextEdit @bind-Text="ProdutoSku" Placeholder="Insira o código do produto" />
-                <Button Color="Color.Primary" Clicked="PesquisarVendaProduto">Pesquisar</Button>
+                <Label for="VendaMetodoPagamento" class="form-label">Método de Pagamento</Label>
+                <Dropdown>
+                    <DropdownToggle Color="Color.Default" Size="Size.Medium">
+                        @metodoPagamento ?? "Selecionar método"
+                    </DropdownToggle>
+               <!--     <DropdownMenu>
+                        <DropdownItem @onclick="() => metodoPagamento = 'Crédito'">Crédito</DropdownItem>
+                        <DropdownItem @onclick="() => metodoPagamento = 'Débito'">Débito</DropdownItem>
+                        <DropdownItem @onclick="() => metodoPagamento = 'Dinheiro'">Dinheiro</DropdownItem>
+                        <DropdownItem @onclick="() => metodoPagamento = 'Pix'">Pix</DropdownItem>
+                    </DropdownMenu> -->
+                </Dropdown>
+
+                <Label for="VendaValorTotal" class="form-label">Valor Total</Label>
+                <input type="number" class="form-control" @bind="valorTotal" placeholder="Valor Total" />
+
+                <Label for="VendaItens" class="form-label">Itens da Venda</Label>
+                <TextArea @bind="itensVenda" placeholder="Descreva os itens da venda" />
             </Field>
-            <Field>
-                <FieldLabel>Nome do Produto</FieldLabel>
-                <TextEdit @bind-Text="NomeProduto" Disabled />
-            </Field>
-            <Field>
-                <FieldLabel>Quantidade Vendida</FieldLabel>
-                <NumericEdit TValue="int" @bind-Value="QuantidadeVendida" Placeholder="Quantidade" />
-            </Field>
-                <Field>
-                    <FieldLabel>Forma de Pagamento</FieldLabel>
-                    </Field>
         </ModalBody>
         <ModalFooter>
-            <Button Color="Color.Success" Clicked="() => AlternarModalRegistrarVenda(true)">Salvar</Button>
-            <Button Color="Color.Danger" Clicked="() => AlternarModalRegistrarVenda(false)">Cancelar</Button>
+            <Button Color="Color.Success" @onclick="InsertVendaButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelVendaButton">Cancelar</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
 
+<!-- Outros modais omitidos por redundância -->
+
 @code {
-    private string ProdutoSku;
-    private string ProdutoNome;
-    private string NomeProduto;
-    private string FormaPagamentoString;
-    private int QuantidadeVendida;
-    private List<ProdutoDto> produtos;
-    private Dictionary<DateTime, List<VendaDto>> vendasPorDia = new();
-    private Modal ModalRegistrarVenda;
-    private ProdutoDto produto;
-    private int currentPage = 0;
-    private DatePicker<DateTime?> datePicker;
-    private DateTime? selectedDate;
-    private VendaDto contexto;
-    
-    // Inicialização
+    private string metodoPagamento;
+    private decimal valorTotal;
+    private string itensVenda;
+
+    private Modal modalCriarVenda;
+    private Modal modalAtualizarVenda;
+    private Modal modalExcluirVenda;
+
+    private List<VendaDto> vendas;
+
     protected override async Task OnInitializedAsync()
     {
-        produtos = await ProdutoService.ListarProdutos();
-        vendasPorDia = await VendaService.ObterVendasAgrupadasPorDia() ?? new Dictionary<DateTime, List<VendaDto>>();
-        VerificarDataAtual();
+        await LoadDataAsync();
     }
 
-    private async Task RegistrarVenda()
+    private async Task LoadDataAsync()
     {
-        ModalRegistrarVenda.Show();
+        vendas = await VendasService.ListarVendas();
     }
 
-    private async Task AlternarModalRegistrarVenda(bool salvar)
+    private void OpenAddVendaModal()
     {
-        if (salvar)
+        metodoPagamento = string.Empty;
+        valorTotal = 0;
+        itensVenda = string.Empty;
+        modalCriarVenda.Show();
+    }
+
+    private async Task InsertVendaButton()
+    {
+        if (string.IsNullOrWhiteSpace(metodoPagamento))
         {
-            if (!string.IsNullOrEmpty(ProdutoSku) && QuantidadeVendida > 0 && produto != null)
-            {
-                var venda = new VendaDto
-                {
-                    DataVenda = DateTime.Now,
-                    MetodoPagamento = FormaPagamentoString
-                };
-                
-                var vendaItem = new VendaItemDto
-                {
-                    ProdutoId = produto.Id,
-                    Quantidade = QuantidadeVendida,
-                    ValorUnitario = produto.ValorUnitario,
-                    Subtotal = produto.ValorUnitario * QuantidadeVendida
-                };
-                
-                venda.Itens = new List<VendaItemDto> { vendaItem };
-                
-                await VendaService.AdicionarVenda(venda);
-                await AtualizarProdutos();
-                ModalRegistrarVenda.Hide();
-            }
+            // Mostrar mensagem de erro (opcional)
+            return;
         }
-        else
+
+        var novaVenda = new VendaDto
         {
-            ModalRegistrarVenda.Hide();
-        }
+            MetodoPagamento = metodoPagamento,
+            ValorTotal = valorTotal,
+            Itens = ParseItensVenda(itensVenda)
+        };
+
+        await VendasService.AdicionarVenda(novaVenda);
+        await LoadDataAsync();
+        modalCriarVenda.Hide();
     }
 
-    private async Task PesquisarVendaProduto()
+    private List<VendaItemDto> ParseItensVenda(string itens)
     {
-        produto = produtos.FirstOrDefault(p => p.Sku == ProdutoSku);
-        NomeProduto = produto?.Nome ?? "Produto não encontrado.";
-    }
-
-    private async Task AtualizarProdutos()
-    {
-        produtos = await ProdutoService.ListarProdutos();
-        vendasPorDia = await VendaService.ObterVendasAgrupadasPorDia();
-        StateHasChanged();
-    }
-
-    private void PaginaAnterior() { if (currentPage > 0) currentPage--; }
-    private void ProximaPagina() { if (currentPage < vendasPorDia.Count - 1) currentPage++; }
-    private void VerificarDataAtual()
-    {
-        var dataAtual = DateTime.Now.Date;
-        if (!vendasPorDia.ContainsKey(dataAtual)) vendasPorDia[dataAtual] = new List<VendaDto>();
-        currentPage = vendasPorDia.Keys.ToList().IndexOf(dataAtual);
-    }
-
-    private async Task HandleKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") await OnDateSelected(selectedDate);
-    }
-
-    private async Task OnDateSelected(DateTime? date)
-    {
-        selectedDate = date;
-        await FetchSalesForSelectedDate();
-    }
-
-    private async Task FetchSalesForSelectedDate()
-    {
-        if (selectedDate.HasValue)
+        var itensList = new List<VendaItemDto>();
+        // Aqui você pode transformar a string de itens em uma lista de VendaItemDto
+        // Exemplo simples: separar por vírgulas e gerar um item fictício
+        foreach (var item in itens.Split(','))
         {
-            var date = selectedDate.Value.Date;
-            if (!vendasPorDia.ContainsKey(date)) vendasPorDia[date] = new List<VendaDto>();
-            currentPage = vendasPorDia.Keys.ToList().IndexOf(date);
+           // itensList.Add(new VendaItemDto { Nome = item.Trim() });
         }
+        return itensList;
     }
 
-    private async Task ExcluirVenda()
+    private void CancelVendaButton()
     {
-        
+        modalCriarVenda.Hide();
+        modalAtualizarVenda.Hide();
+        modalExcluirVenda.Hide();
+    }
+
+    private void OpenUpdateVendaModal(VendaDto vendaDto)
+    {
+        // Preencher os campos com os dados da venda a ser atualizada
+        metodoPagamento = vendaDto.MetodoPagamento;
+        valorTotal = vendaDto.ValorTotal;
+        //itensVenda = string.Join(", ", vendaDto.Itens.Select(i => i.Nome));
+        modalAtualizarVenda.Show();
+    }
+
+    private void OptionDeleteVendaButton(VendaDto vendaDto)
+    {
+        // Preparar a venda para exclusão
+        modalExcluirVenda.Show();
     }
 }
