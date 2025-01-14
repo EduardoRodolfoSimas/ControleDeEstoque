@@ -17,6 +17,15 @@ public class VendasService : IVendasService
     {
         return await _httpClient.GetFromJsonAsync<List<VendaDto>>(ApiUrl) ?? new List<VendaDto>();
     }
+    
+    public async Task<Dictionary<DateTime, List<VendaDto>>> ObterVendasAgrupadasPorDia()
+    {
+        var vendas = await ListarVendas();
+
+        return vendas
+            .GroupBy(v => v.DataVenda.Date)
+            .ToDictionary(g => g.Key, g => g.ToList());
+    }
 
     public async Task<VendaDto> AdicionarVenda(VendaDto vendaDto)
     {
@@ -41,4 +50,5 @@ public class VendasService : IVendasService
         }
         return null;
     }
+    
 }

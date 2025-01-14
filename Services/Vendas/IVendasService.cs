@@ -8,4 +8,5 @@ public interface IVendasService
     Task<VendaDto> AdicionarVenda(VendaDto vendaDto);
     Task<VendaDto> AtualizarVenda(VendaDto vendaDto);
     Task<VendaDto?> DeletarVenda(Guid id);
+    Task<Dictionary<DateTime, List<VendaDto>>> ObterVendasAgrupadasPorDia();
 }
