@@ -14,14 +14,26 @@
     <Column>
         <Card Margin="Margin.Is4.OnY">
             <CardHeader>
-                <CardTitle>Registro de Vendas</CardTitle>
+                <strong><h3>Registro de Vendas</h3></strong>
             </CardHeader>
             <CardBody>
-                <Div class="d-flex justify-content-between mb-3">   
-                    <Button Color="Color.Success" Clicked="RegistrarVenda">Registrar Venda</Button>
+                <Div class="d-flex justify-content-between mb-2">
+                    <Div class="d-flex justify-content-start">
+                        <Addons>
+                            <Addon AddonType="AddonType.Body">
+                                <DatePicker @ref="datePicker" TValue="DateTime?" @bind-Date="selectedDate" InputFormat="dd/MM/yyyy" DisplayFormat="dd/MM/yyyy" OnKeyPress="HandleKeyPress"/>
+                            </Addon>
+                            <Addon AddonType="AddonType.End">
+                                <Button Color="Color.Light" Clicked="@(async () => await HandleKeyPress(new KeyboardEventArgs { Key = "Enter" }))">
+                                    <Icon Name="IconName.CalendarDay"/>
+                                </Button>
+                            </Addon>
+                        </Addons>
+                        </Div>
                     <Div>
-                        <Button Color="Color.Warning" Clicked="AtualizarProdutos" class="me-2">Atualizar Venda</Button>
-                        <Button Color="Color.Danger" Clicked="ExcluirVenda">Excluir Venda</Button>
+                        <Button Color="Color.Success" Clicked="RegistrarVenda">Nova venda</Button>
+                        <Button Color="Color.Warning" Clicked="AtualizarProdutos">Atualizar</Button>
+                        <Button Color="Color.Danger" Clicked="ExcluirVenda">Excluir</Button>
                     </Div>
                 </Div>
                 <DataGrid TItem="VendaDto"
@@ -60,18 +72,6 @@
                 </DataGrid>
                 <Div class="d-flex justify-content-between align-items-center mt-3">
                     <Div>
-                        <Addons>
-                            <Addon AddonType="AddonType.Body">
-                                <DatePicker @ref="datePicker" TValue="DateTime?" @bind-Date="selectedDate" InputFormat="dd/MM/yyyy" DisplayFormat="dd/MM/yyyy" OnKeyPress="HandleKeyPress" />
-                            </Addon>
-                            <Addon AddonType="AddonType.End">
-                                <Button Color="Color.Light" Clicked="@(async () => await HandleKeyPress(new KeyboardEventArgs { Key = "Enter" }))">
-                                    <Icon Name="IconName.CalendarDay" />
-                                </Button>
-                            </Addon>
-                        </Addons>
-                    </Div>
-                    <Div>
                         <Button Color="Color.Light" Clicked="PaginaAnterior" class="me-2">Anterior</Button>
                         <Button Color="Color.Light" Clicked="ProximaPagina">Próximo</Button>
                     </Div>
@@ -88,9 +88,16 @@
         </ModalHeader>
         <ModalBody>
             <Field>
-                <FieldLabel>Código do Produto</FieldLabel>
-                <TextEdit @bind-Text="ProdutoSku" Placeholder="Insira o código do produto" />
-                <Button Color="Color.Primary" Clicked="PesquisarVendaProduto">Pesquisar</Button>
+                <Addons>
+                    <Addon AddonType="AddonType.Body">
+                        <TextEdit @bind-Text="ProdutoSku" Placeholder="Insira o código do produto" />
+                    </Addon>
+                    <Addon AddonType="AddonType.End">
+                        <Button Color="Color.Default" Clicked="PesquisarVendaProduto">
+                            <Icon Name="IconName.Search"/>
+                        </Button>
+                    </Addon>
+                </Addons>
             </Field>
             <Field>
                 <FieldLabel>Nome do Produto</FieldLabel>

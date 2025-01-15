@@ -5,7 +5,7 @@ namespace ControleDeEstoque.Services.ProdutoService;
 public class ProdutoService : IProdutoService.IProdutoService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://xn--produoapicontroledeestoque-htbwcagua2g5c2hw-vtd3p.brazilsouth-01.azurewebsites.net/produto";
+    private const string ApiUrl = "https://localhost:7098/produto";
 
     public ProdutoService(HttpClient httpClient)
     {

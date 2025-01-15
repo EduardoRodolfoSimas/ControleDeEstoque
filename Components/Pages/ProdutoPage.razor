@@ -1,206 +1,119 @@
-namespace ControleDeEstoque.Pages;
-
 @page "/produto"
-<PageTitle>Produtos</PageTitle>
-@using ControleDeEstoque.DTOs.CategoriaDto
-@using ControleDeEstoque.Services
 @using Blazorise
+@using Blazorise.DataGrid
+@using ControleDeEstoque.DTOs.CategoriaDto
 @using ControleDeEstoque.DTOs.ProdutoDto
 @using ControleDeEstoque.DTOs.TamanhoDto
-@using ControleDeEstoque.DTOs.CategoriaDto
 @using ControleDeEstoque.Services.ICategoriaService
 @using ControleDeEstoque.Services.IProdutoService
 @using ControleDeEstoque.Services.ITamanhos
-@inject IProdutoService ProdutoService
-@inject ICategoriaService CategoriaService
-@inject ITamanhoService TamanhoService
-@rendermode InteractiveServer
 
-<h3>Gerenciamento de Produtos</h3>
+<PageTitle>Gerenciamento de Produtos</PageTitle>
 
-@if (produtos == null)
-{
-    <p><em>Carregando...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Código</th>
-            <th>Produto</th>
-            <th>Categoria</th>
-            <th>Tamanho</th>
-            <th>Preço</th>
-            <th>Quantidade</th>
-            <th><button class="btn btn-primary" @onclick="AbrirModalCriarProduto">Novo Produto</button></th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var produto in produtos)
-        {
-            <tr>
-                <td>@produto.Sku</td>
-                <td>@produto.Nome</td>
-                <td>@categorias.FirstOrDefault(c => c.Id == produto.CategoriaId)?.Nome</td>
-                <td>@tamanhos.FirstOrDefault(t => t.Id == produto.TamanhoId)?.Nome</td>
-                <td>R$ @produto.ValorUnitario.ToString("F2")</td>
-                <td>@produto.Quantidade</td>
-                <td>
-                    <button class="btn btn-warning" @onclick="() => AbrirModalAtualizarProduto(produto)">Editar</button>
-                    <button class="btn btn-danger" @onclick="() => AbrirModalExcluirProduto(produto)">Excluir</button>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-}
+<EditForm Model="produtoEditando" OnValidSubmit="SalvarProduto">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
 
-<Modal @ref="modalCriarProduto">
-    <ModalContent Size="ModalSize.Default" Centered="true">
+    <!-- Modal para criação e edição de produtos -->
+    <Modal @bind-Visible="modalVisivel">
         <ModalHeader>
-            <strong>Criar Novo Produto</strong>
+            <h4>@(produtoEditando.Id == null ? "Criar Produto" : "Editar Produto")</h4>
         </ModalHeader>
+
         <ModalBody>
-            <Field>
-                <Label>Nome</Label>
-                <InputText @bind-Value="NovoProduto.Nome" Placeholder="Insira o nome do produto" />
-
-                <Label>Código</Label>
-                <InputText @bind-Value="NovoProduto.Sku" Placeholder="Insira o código do produto" />
-
-                <Label>Categoria</Label>
-                <Dropdown>
-                    <DropdownToggle>@categorias.FirstOrDefault(c => c.Id == NovoProduto.CategoriaId)?.Nome ?? "Selecione uma categoria"</DropdownToggle>
-                    <DropdownMenu>
-                        @if (categorias == null || !categorias.Any())
-                        {
-                            <DropdownItem disabled>Nenhuma categoria disponível</DropdownItem>
-                        }
-                        else
-                        {
-                            @foreach (var categoria in categorias)
-                            {
-                                <DropdownItem @onclick="() => NovoProduto.CategoriaId = categoria.Id">@categoria.Nome</DropdownItem>
-                            }
-                        }
-                    </DropdownMenu>
-                </Dropdown>
-
-                <Label>Tamanho</Label>
-                <Dropdown>
-                    <DropdownToggle>@tamanhos.FirstOrDefault(t => t.Id == NovoProduto.TamanhoId)?.Nome ?? "Selecione um tamanho"</DropdownToggle>
-                    <DropdownMenu>
-                        @if (tamanhos == null || !tamanhos.Any())
-                        {
-                            <DropdownItem disabled>Nenhum tamanho disponível</DropdownItem>
-                        }
-                        else
-                        {
-                            @foreach (var tamanho in tamanhos)
-                            {
-                                <DropdownItem @onclick="() => NovoProduto.TamanhoId = tamanho.Id">@tamanho.Nome</DropdownItem>
-                            }
-                        }
-                    </DropdownMenu>
-                </Dropdown>
-
-                <Label>Preço</Label>
-                <InputNumber @bind-Value="NovoProduto.ValorUnitario" Placeholder="Insira o preço unitário" />
-
-                <Label>Quantidade</Label>
-                <InputNumber @bind-Value="NovoProduto.Quantidade" Placeholder="Insira a quantidade" />
-            </Field>
+            <TextEdit @bind-Value="produtoEditando.Nome" Placeholder="Nome do Produto" />
+            <NumericEdit TValue="decimal" @bind-Value="produtoEditando.ValorUnitario" Placeholder="Preço do Produto" />
+            <Select TValue="int" @bind-Value="produtoEditando.CategoriaId" Data="categorias" TextField="Nome" ValueField="Id" />
+            <Select TValue="int" @bind-Value="produtoEditando.TamanhoId" Data="tamanhos" TextField="Descricao" ValueField="Id" />
         </ModalBody>
+
         <ModalFooter>
-            <Button Color="Color.Success" @onclick="SalvarNovoProduto">Salvar</Button>
-            <Button Color="Color.Danger" @onclick="CancelarModal">Cancelar</Button>
+            <Button Color="Color.Primary" Clicked="SalvarProduto">Salvar</Button>
+            <Button Color="Color.Secondary" Clicked="FecharModal">Cancelar</Button>
         </ModalFooter>
-    </ModalContent>
-</Modal>
+    </Modal>
+</EditForm>
+
+<!-- DataGrid para exibição dos produtos -->
+<DataGrid Data="produtos" TItem="ProdutoDto" ShowPager="true" PageSize="10">
+    <Columns>
+        <DataGridColumn TItem="ProdutoDto" Field="Nome" Caption="Nome" />
+        <DataGridColumn TItem="ProdutoDto" Field="ValorUnitario" Caption="Preço" />
+        <DataGridColumn TItem="ProdutoDto" Field="Categoria.Nome" Caption="Categoria" />
+        <DataGridColumn TItem="ProdutoDto" Field="Tamanho.Descricao" Caption="Tamanho" />
+        <DataGridCommandColumn TItem="ProdutoDto" Caption="Ações">
+            <Commands>
+                <DataGridCommandButton CommandName="Edit" Color="Color.Info" Icon="fa fa-edit" Clicked="AbrirModalParaEdicao" />
+                <DataGridCommandButton CommandName="Delete" Color="Color.Danger" Icon="fa fa-trash" Clicked="ExcluirProduto" />
+            </Commands>
+        </DataGridCommandColumn>
+    </Columns>
+</DataGrid>
 
 @code {
-    private ProdutoDto NovoProduto = new ProdutoDto();
-    private ProdutoDto ProdutoSelecionado;
-    private Modal modalCriarProduto;
-    private Modal modalAtualizarProduto;
-    private Modal modalExcluirProduto;
-    private List<ProdutoDto> produtos;
+    private ProdutoDto produtoEditando = new ProdutoDto();
+    private bool modalVisivel = false;
+    private List<ProdutoDto> produtos = new List<ProdutoDto>();
     private List<CategoriaDto> categorias;
     private List<TamanhoDto> tamanhos;
 
+    // Simulação de serviços, substitua com os reais
+    private IProdutoService ProdutoService;
+    private ICategoriaService CategoriaService;
+    private ITamanhoService TamanhoService;
+
     protected override async Task OnInitializedAsync()
     {
-        await CarregarDados();
-        
-    }
-
-    private async Task CarregarDados()
-    {
-        produtos = await ProdutoService.ListarProdutos();
+        // Carregar dados para categorias, tamanhos e produtos
         categorias = await CategoriaService.ListarCategorias();
         tamanhos = await TamanhoService.ListarTamanhos();
+        produtos = await ProdutoService.ListarProdutos();
     }
 
-    private void AbrirModalCriarProduto()
+    // Função para salvar ou atualizar o produto
+    private async Task SalvarProduto()
     {
-        NovoProduto = new ProdutoDto();
-        modalCriarProduto.Show();
-    }
-
-    private async Task SalvarNovoProduto()
-    {
-        if (string.IsNullOrWhiteSpace(NovoProduto.Nome) || string.IsNullOrWhiteSpace(NovoProduto.Sku))
+        if (produtoEditando.Id == null)
         {
-            // Mostrar erro de validação
-            return;
+            // Criar um novo produto
+            await ProdutoService.AdicionarProduto(produtoEditando);
+        }
+        else
+        {
+            // Atualizar um produto existente
+            await ProdutoService.AtualizarProduto(produtoEditando);
         }
 
-        await ProdutoService.AdicionarProduto(NovoProduto);
-        await CarregarDados();
-        modalCriarProduto.Hide();
+        // Fechar modal e atualizar a lista de produtos
+        FecharModal();
+        produtos = await ProdutoService.ListarProdutos();
     }
 
-    private void AbrirModalAtualizarProduto(ProdutoDto produto)
+    // Função para excluir um produto
+    private async Task ExcluirProduto(ProdutoDto produtoDto)
     {
-        ProdutoSelecionado = produto;
-        NovoProduto = new ProdutoDto
-        {
-            Id = produto.Id,
-            Nome = produto.Nome,
-            Sku = produto.Sku,
-            ValorUnitario = produto.ValorUnitario,
-            Quantidade = produto.Quantidade,
-            CategoriaId = produto.CategoriaId,
-            TamanhoId = produto.TamanhoId
-        };
-        modalAtualizarProduto.Show();
+        await ProdutoService.DeletarProduto(produtoDto.Id);
+        produtos = await ProdutoService.ListarProdutos(); // Atualizar a lista de produtos
     }
 
-    private async Task SalvarAtualizacaoProduto()
+    // Abrir o modal para criação de um novo produto
+    private void AbrirModalParaCriacao()
     {
-        await ProdutoService.AtualizarProduto(NovoProduto);
-        await CarregarDados();
-        modalAtualizarProduto.Hide();
+        produtoEditando = new ProdutoDto(); // Criar um novo objeto
+        modalVisivel = true;
     }
 
-    private void AbrirModalExcluirProduto(ProdutoDto produto)
+    // Abrir o modal para edição de um produto existente
+    private void AbrirModalParaEdicao(ProdutoDto produtoDto)
     {
-        ProdutoSelecionado = produto;
-        modalExcluirProduto.Show();
+        produtoEditando = produtoDto; // Carregar produto para edição
+        modalVisivel = true;
     }
 
-    private async Task ConfirmarExclusaoProduto()
+    // Fechar o modal
+    private void FecharModal()
     {
-        await ProdutoService.DeletarProduto(ProdutoSelecionado.Id);
-        await CarregarDados();
-        modalExcluirProduto.Hide();
-    }
-
-    private void CancelarModal()
-    {
-        modalCriarProduto.Hide();
-        modalAtualizarProduto.Hide();
-        modalExcluirProduto.Hide();
+        modalVisivel = false;
+        produtoEditando = new ProdutoDto(); // Limpar dados após salvar
     }
 }
