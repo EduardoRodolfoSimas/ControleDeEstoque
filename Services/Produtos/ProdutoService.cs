@@ -5,7 +5,7 @@ namespace ControleDeEstoque.Services.ProdutoService;
 public class ProdutoService : IProdutoService.IProdutoService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://localhost:7098/produto";
+    private const string ApiUrl = "https://localhost:44345/produto";
 
     public ProdutoService(HttpClient httpClient)
     {

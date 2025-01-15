@@ -6,7 +6,7 @@ namespace ControleDeEstoque.Services.TamanhoService;
 public class TamanhoService : ITamanhoService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://localhost:7098/tamanho";
+    private const string ApiUrl = "https://localhost:44345/tamanho";
 
     public TamanhoService(HttpClient httpClient)
     {
