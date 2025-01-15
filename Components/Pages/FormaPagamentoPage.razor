@@ -1,0 +1,180 @@
+@page "/pagamento"
+
+@inject IFormaDePagamentoService FormaPagamentoService
+@rendermode InteractiveServer
+@using Blazorise.DataGrid
+@using Blazorise
+@using ControleDeEstoque.DTOs.FormaDePagamentoDto
+@using ControleDeEstoque.Services.IFormaDePagamentoService
+
+@if (formasDePagamento == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <div style="display: inline;">
+        <h3 style="display: inline;">Formas de Pagamento</h3>
+        <h5 style="display: inline;"> | Gerenciamento de Formas de Pagamento</h5>
+    </div>
+    <Row>
+        <Column>
+            <Card Margin="Margin.Is4.OnY">
+                <CardBody>
+                    <Div class="d-flex justify-content-end mb-2">
+                        <Div>
+                            <Button Color="Color.Success" Clicked="AbrirModalAdicionarFormaPagamento">Nova Forma de Pagamento</Button>
+                            <Button Color="Color.Warning" Clicked="() => AbrirModalAtualizarFormaPagamento(_formaPagamentoDtoSelecionada)">Atualizar</Button>
+                            <Button Color="Color.Danger" Clicked="() => OptionDeleteFormaPagamentoButton(_formaPagamentoDtoSelecionada)">Excluir</Button>
+                        </Div>
+                    </Div>
+                    <DataGrid TItem="FormaDePagamentoDto"
+                              Data="formasDePagamento"
+                              @bind-SelectedRow="_formaPagamentoDtoSelecionada"
+                              Striped="true"
+                              Bordered="true"
+                              Hoverable="true"
+                              CommandMode="DataGridCommandMode.ButtonRow"
+                              EditMode="DataGridEditMode.Popup">
+                        <DataGridColumns>
+                            <DataGridColumn TItem="FormaDePagamentoDto" Field="@nameof(FormaDePagamentoDto.Tipo)" Caption="Tipo" Editable />
+                            <DataGridColumn TItem="FormaDePagamentoDto" Field="@nameof(FormaDePagamentoDto.Descricao)" Caption="Descrição" Editable />
+                        </DataGridColumns>
+                    </DataGrid>
+                </CardBody>
+            </Card>
+        </Column>
+    </Row>
+}
+
+<Modal @ref="modalCriarFormaPagamento">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Adicionar uma nova forma de pagamento</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="FormaPagamentoTipo" class="form-label">Tipo</Label>
+                <input type="text" class="form-control" id="FormaPagamentoTipo" @bind-value="NovoFormaPagamentoTipo" placeholder="Insira o tipo da forma de pagamento"/>
+                <Label for="FormaPagamentoDescricao" class="form-label">Descrição</Label>
+                <input type="text" class="form-control" id="FormaPagamentoDescricao" @bind-value="NovoFormaPagamentoDescricao" placeholder="Insira a descrição da forma de pagamento"/>
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="InsertFormaPagamentoButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelFormaPagamentoButton">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<Modal @ref="modalAtualizarFormaPagamento">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Atualizar Forma de Pagamento</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="FormaPagamentoTipo" class="form-label">Tipo</Label>
+                <input type="text" class="form-control" id="FormaPagamentoTipo" @bind-value="NovoFormaPagamentoTipo" placeholder="Insira o tipo da forma de pagamento"/>
+                <Label for="FormaPagamentoDescricao" class="form-label">Descrição</Label>
+                <input type="text" class="form-control" id="FormaPagamentoDescricao" @bind-value="NovoFormaPagamentoDescricao" placeholder="Insira a descrição da forma de pagamento"/>
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="UpdateFormaPagamentoButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelFormaPagamentoButton">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<Modal @ref="modalDeletarFormaPagamento">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Deletar Forma de Pagamento</strong>
+        </ModalHeader>
+        <ModalBody>
+            @if (_formaPagamentoDtoSelecionada != null)
+            {
+                <p>Tem certeza que deseja deletar a forma de pagamento @_formaPagamentoDtoSelecionada.Tipo?</p>
+            }
+        </ModalBody>
+        <ModalFooter>
+            <Button class="btn btn-danger" @onclick="DeleteFormaPagamentoButton">Deletar</Button>
+            <Button class="btn btn-secondary" @onclick="CancelFormaPagamentoButton">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code
+{
+    private List<FormaDePagamentoDto> formasDePagamento;
+    private Modal modalCriarFormaPagamento = new Modal();
+    private Modal modalAtualizarFormaPagamento = new Modal();
+    private Modal modalDeletarFormaPagamento = new Modal();
+    private FormaDePagamentoDto _formaPagamentoDtoSelecionada;
+    private string NovoFormaPagamentoTipo;
+    private string NovoFormaPagamentoDescricao;
+
+    protected override async Task OnInitializedAsync()
+    {
+        formasDePagamento = await FormaPagamentoService.ListarFormasDePagamento();
+    }
+
+    private void AbrirModalAdicionarFormaPagamento()
+    {
+        NovoFormaPagamentoTipo = string.Empty;
+        NovoFormaPagamentoDescricao = string.Empty;
+        modalCriarFormaPagamento.Show();
+    }
+
+    private void AbrirModalAtualizarFormaPagamento(FormaDePagamentoDto formaDePagamentoDto)
+    {
+        _formaPagamentoDtoSelecionada = formaDePagamentoDto;
+        NovoFormaPagamentoTipo = formaDePagamentoDto.Tipo;
+        NovoFormaPagamentoDescricao = formaDePagamentoDto.Descricao;
+        modalAtualizarFormaPagamento.Show();
+    }
+
+    private void CancelFormaPagamentoButton()
+    {
+        NovoFormaPagamentoTipo = string.Empty;
+        NovoFormaPagamentoDescricao = string.Empty;
+        modalCriarFormaPagamento.Hide();
+        modalAtualizarFormaPagamento.Hide();
+        modalDeletarFormaPagamento.Hide();
+    }
+
+    private async Task InsertFormaPagamentoButton()
+    {
+        FormaDePagamentoDto formaDePagamentoDto = new FormaDePagamentoDto
+        {
+            Tipo = NovoFormaPagamentoTipo,
+            Descricao = NovoFormaPagamentoDescricao,
+        };
+        await FormaPagamentoService.AdicionarFormaPagamento(formaDePagamentoDto);
+        formasDePagamento = await FormaPagamentoService.ListarFormasDePagamento();
+        modalCriarFormaPagamento.Hide();
+    }
+
+    private async Task UpdateFormaPagamentoButton()
+    {
+        _formaPagamentoDtoSelecionada.Tipo = NovoFormaPagamentoTipo;
+        _formaPagamentoDtoSelecionada.Descricao = NovoFormaPagamentoDescricao;
+        await FormaPagamentoService.AtualizarFormaPagamento(_formaPagamentoDtoSelecionada);
+        formasDePagamento = await FormaPagamentoService.ListarFormasDePagamento();
+        modalAtualizarFormaPagamento.Hide();
+    }
+
+    private void OptionDeleteFormaPagamentoButton(FormaDePagamentoDto formaDePagamentoDto)
+    {
+        _formaPagamentoDtoSelecionada = formaDePagamentoDto;
+        modalDeletarFormaPagamento.Show();
+    }
+
+    private async Task DeleteFormaPagamentoButton()
+    {
+        await FormaPagamentoService.DeletarFormaPagamento(_formaPagamentoDtoSelecionada.Id);
+        formasDePagamento = await FormaPagamentoService.ListarFormasDePagamento();
+        modalDeletarFormaPagamento.Hide();
+    }
+}
