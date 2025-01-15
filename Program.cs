@@ -4,8 +4,10 @@ using ControleDeEstoque.Services.Vendas;
 using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
+using ControleDeEstoque.Services.FormaDePagamentoService;
 using ControleDeEstoque.Services.CategoriaService;
 using ControleDeEstoque.Services.ICategoriaService;
+using ControleDeEstoque.Services.IFormaDePagamentoService;
 using ControleDeEstoque.Services.IProdutoService;
 using ControleDeEstoque.Services.ITamanhos;
 using ControleDeEstoque.Services.TamanhoService;
@@ -20,6 +22,7 @@ builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();   
 builder.Services.AddScoped<IVendasService, VendasService>();
 builder.Services.AddScoped<ITamanhoService, TamanhoService>();
+builder.Services.AddScoped<IFormaDePagamentoService, FormaDePagamentoService>();
 builder.Services.AddHttpClient("API", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseAddress"]);

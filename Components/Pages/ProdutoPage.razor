@@ -1,4 +1,5 @@
 @page "/produto"
+@using Blazorise
 @using Blazorise.DataGrid
 @using ControleDeEstoque.DTOs.CategoriaDto
 @using ControleDeEstoque.DTOs.ProdutoDto
@@ -12,115 +13,208 @@
 
 <PageTitle>Gerenciamento de Produtos</PageTitle>
 
-<Button Color="Color.Primary" Clicked="AbrirModalParaCriacao">Adicionar Produto</Button>
-<!--
-    <Modal @bind-Visible="modalVisivel">
-    <ModalHeader>
-        <h4>@(produtoEditando.Id == Guid.Empty ? "Criar Produto" : "Editar Produto")</h4>
-    </ModalHeader>
+@if (produtos == null || categorias == null || tamanhos == null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <div style="display: inline;">
+        <h3 style="display: inline;">Estoque</h3>
+        <h5 style="display: inline;"> | Gerenciamento de Produtos</h5>
+    </div>
+    <Row>
+        <Column>
+            <Card Margin="Margin.Is4.OnY">
+                <CardBody>
+                    <Div class="d-flex justify-content-end mb-2">
+                        <Button Color="Color.Success" Clicked="AbrirModalAdicionarProduto">Novo Produto</Button>
+                        <Button Color="Color.Warning" Disabled="(_produtoSelecionado is null)" Clicked="() => AbrirModalAtualizarProduto(_produtoSelecionado)">Atualizar</Button>
+                        <Button Color="Color.Danger" Disabled="(_produtoSelecionado is null)" Clicked="() => AbrirModalDeletarProduto(_produtoSelecionado)">Excluir</Button>
+                    </Div>
+                    <DataGrid TItem="ProdutoDto"
+                              Data="produtos"
+                              @bind-SelectedRow="_produtoSelecionado"
+                              Striped="true"
+                              Bordered="true"
+                              Hoverable="true"
+                              ShowPager="true"
+                              PageSize="10">
+                        <DataGridColumns>
+                            <DataGridColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.Nome)" Caption="Nome do Produto" />
+                            <DataGridNumericColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.ValorUnitario)" Caption="Preço" DisplayFormat="{0:C}" />
+                            <DataGridColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.CategoriaNome)" Caption="Categoria" />
+                            <DataGridColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.TamanhoNome)" Caption="Tamanho" />
+                            <DataGridNumericColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.Quantidade)" Caption="Quantidade" />
+                        </DataGridColumns>
+                    </DataGrid>
+                </CardBody>
+            </Card>
+        </Column>
+    </Row>
+}
 
-    <ModalBody>
-        <EditForm Model="produtoEditando" OnValidSubmit="SalvarProduto">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            <TextEdit @bind-Value="produtoEditando.Nome" Placeholder="Nome do Produto" />
-            <NumericEdit TValue="decimal" @bind-Value="produtoEditando.ValorUnitario" Placeholder="Preço do Produto" />
-            <Select TValue="Guid" @bind-Value="produtoEditando.CategoriaId" Data="categorias" TextField="Nome" ValueField="Id" />
-            <Select TValue="Guid" @bind-Value="produtoEditando.TamanhoId" Data="tamanhos" TextField="Descricao" ValueField="Id" />
-            <Button Type="submit" Color="Color.Primary">Salvar</Button>
-        </EditForm>
-    </ModalBody>
-
-    <ModalFooter>
-        <Button Color="Color.Secondary" Clicked="FecharModal">Cancelar</Button>
-    </ModalFooter>
+<!-- Modal Adicionar Produto -->
+<Modal @ref="modalCriarProduto">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Adicionar Produto</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="ProdutoNome" class="form-label">Nome do Produto</Label>
+                <input type="text" class="form-control" id="ProdutoNome" @bind-value="NovoProdutoNome" placeholder="Insira o nome do produto" />
+                <Label for="ProdutoPreco" class="form-label">Preço</Label>
+                <input type="number" class="form-control" id="ProdutoPreco" @bind-value="NovoProdutoPreco" placeholder="Insira o preço do produto" />
+                <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
+                <Select TValue="Guid" @bind-value="NovoProdutoCategoriaId" Data="categorias" TextField="Nome" ValueField="Id" />
+                <Label for="ProdutoTamanho" class="form-label">Tamanho</Label>
+                <Select TValue="Guid" @bind-value="NovoProdutoTamanhoId" Data="tamanhos" TextField="Descricao" ValueField="Id" />
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="InsertProdutoButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelarProduto">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
 </Modal>
--->
-<DataGrid Data="produtos" TItem="ProdutoDto" ShowPager="true" PageSize="10">
-    <Columns>
-        <DataGridColumn TItem="ProdutoDto" Field="Nome" Caption="Nome" />
-        <DataGridColumn TItem="ProdutoDto" Field="ValorUnitario" Caption="Preço" />
-        <DataGridColumn TItem="ProdutoDto" Field="CategoriaNome" Caption="Categoria" />
-        <DataGridColumn TItem="ProdutoDto" Field="TamanhoNome" Caption="Tamanho" />
-        <DataGridCommandColumn TItem="ProdutoDto" Caption="Ações">
-            <Commands>
-                <DataGridCommandButton CommandName="Edit" Color="Color.Info" Icon="fa fa-edit" Clicked="() => AbrirModalParaEdicao(item)" />
-                <DataGridCommandButton CommandName="Delete" Color="Color.Danger" Icon="fa fa-trash" Clicked="() => ExcluirProduto(item)" />
-            </Commands>
-        </DataGridCommandColumn>
-    </Columns>
-</DataGrid>
+
+<!-- Modal Atualizar Produto -->
+<Modal @ref="modalAtualizarProduto">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Atualizar Produto</strong>
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <Label for="ProdutoNome" class="form-label">Nome do Produto</Label>
+                <input type="text" class="form-control" id="ProdutoNome" @bind-value="NovoProdutoNome" placeholder="Insira o nome do produto" />
+                <Label for="ProdutoPreco" class="form-label">Preço</Label>
+                <input type="number" class="form-control" id="ProdutoPreco" @bind-value="NovoProdutoPreco" placeholder="Insira o preço do produto" />
+                <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
+                <Select TValue="Guid" @bind-value="NovoProdutoCategoriaId" Data="categorias" TextField="Nome" ValueField="Id" />
+                <Label for="ProdutoTamanho" class="form-label">Tamanho</Label>
+                <Select TValue="Guid" @bind-value="NovoProdutoTamanhoId" Data="tamanhos" TextField="Descricao" ValueField="Id" />
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Success" @onclick="UpdateProdutoButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelarProduto">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+<!-- Modal Deletar Produto -->
+<Modal @ref="modalDeletarProduto">
+    <ModalContent Size="ModalSize.Default" Centered="true">
+        <ModalHeader>
+            <strong>Excluir Produto</strong>
+        </ModalHeader>
+        <ModalBody>
+            @if (_produtoSelecionado != null)
+            {
+                <p>Tem certeza que deseja excluir o produto @_produtoSelecionado.Nome?</p>
+            }
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Danger" @onclick="DeleteProdutoButton">Excluir</Button>
+            <Button Color="Color.Secondary" @onclick="CancelarProduto">Cancelar</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
 
 @code {
-    private ProdutoDto produtoEditando = new ProdutoDto();
-    private bool modalVisivel = false;
-    private List<ProdutoDto> produtos = new();
-    private List<CategoriaDto> categorias = new();
-    private List<TamanhoDto> tamanhos = new();
+    private List<ProdutoDto> produtos;
+    private List<CategoriaDto> categorias;
+    private List<TamanhoDto> tamanhos;
+    private Modal modalCriarProduto = new Modal();
+    private Modal modalAtualizarProduto = new Modal();
+    private Modal modalDeletarProduto = new Modal();
+    private ProdutoDto _produtoSelecionado;
+    private string NovoProdutoNome;
+    private decimal NovoProdutoPreco;
+    private Guid NovoProdutoCategoriaId;
+    private Guid NovoProdutoTamanhoId;
 
     protected override async Task OnInitializedAsync()
-    {
-        await CarregarDados();
-    }
-
-    private async Task CarregarDados()
     {
         produtos = await ProdutoService.ListarProdutos();
         categorias = await CategoriaService.ListarCategorias();
         tamanhos = await TamanhoService.ListarTamanhos();
     }
 
-    private async Task SalvarProduto()
+    private void AbrirModalAdicionarProduto()
     {
-        if (produtoEditando.Id == Guid.Empty)
-        {
-            await ProdutoService.AdicionarProduto(produtoEditando);
-        }
-        else
-        {
-            await ProdutoService.AtualizarProduto(produtoEditando);
-        }
-
-        FecharModal();
-        await CarregarDados();
+        LimparCampos();
+        modalCriarProduto.Show();
     }
 
-    private async Task ExcluirProduto(ProdutoDto produtoDto)
+    private void AbrirModalAtualizarProduto(ProdutoDto produto)
     {
-        var confirmacao = await Task.FromResult(true); // Substituir por confirmação visual
-        if (confirmacao)
-        {
-            await ProdutoService.DeletarProduto(produtoDto.Id);
-            await CarregarDados();
-        }
+        _produtoSelecionado = produto;
+        NovoProdutoNome = produto.Nome;
+        NovoProdutoPreco = produto.ValorUnitario;
+        NovoProdutoCategoriaId = produto.CategoriaId;
+        NovoProdutoTamanhoId = produto.TamanhoId;
+        modalAtualizarProduto.Show();
     }
 
-    private void AbrirModalParaCriacao()
+    private void AbrirModalDeletarProduto(ProdutoDto produto)
     {
-        produtoEditando = new ProdutoDto();
-        modalVisivel = true;
+        _produtoSelecionado = produto;
+        modalDeletarProduto.Show();
     }
 
-    private void AbrirModalParaEdicao(ProdutoDto produtoDto)
+    private void CancelarProduto()
     {
-        produtoEditando = new ProdutoDto
+        LimparCampos();
+        modalCriarProduto.Hide();
+        modalAtualizarProduto.Hide();
+        modalDeletarProduto.Hide();
+    }
+
+    private async Task InsertProdutoButton()
+    {
+        var novoProduto = new ProdutoDto
         {
-            Id = produtoDto.Id,
-            Nome = produtoDto.Nome,
-            ValorUnitario = produtoDto.ValorUnitario,
-            CategoriaId = produtoDto.CategoriaId,
-            TamanhoId = produtoDto.TamanhoId,
-            Quantidade = produtoDto.Quantidade,
-            CategoriaNome = produtoDto.CategoriaNome,
-            TamanhoNome = produtoDto.TamanhoNome
+            Nome = NovoProdutoNome,
+            ValorUnitario = NovoProdutoPreco,
+            CategoriaId = NovoProdutoCategoriaId,
+            TamanhoId = NovoProdutoTamanhoId
         };
-        modalVisivel = true;
+        await ProdutoService.AdicionarProduto(novoProduto);
+        await AtualizarProdutos();
+        modalCriarProduto.Hide();
     }
 
-    private void FecharModal()
+    private async Task UpdateProdutoButton()
     {
-        modalVisivel = false;
-        produtoEditando = new ProdutoDto();
+        _produtoSelecionado.Nome = NovoProdutoNome;
+        _produtoSelecionado.ValorUnitario = NovoProdutoPreco;
+        _produtoSelecionado.CategoriaId = NovoProdutoCategoriaId;
+        _produtoSelecionado.TamanhoId = NovoProdutoTamanhoId;
+        await ProdutoService.AtualizarProduto(_produtoSelecionado);
+        await AtualizarProdutos();
+        modalAtualizarProduto.Hide();
+    }
+
+    private async Task DeleteProdutoButton()
+    {
+        await ProdutoService.DeletarProduto(_produtoSelecionado.Id);
+        await AtualizarProdutos();
+        modalDeletarProduto.Hide();
+    }
+
+    private async Task AtualizarProdutos()
+    {
+        produtos = await ProdutoService.ListarProdutos();
+    }
+
+    private void LimparCampos()
+    {
+        NovoProdutoNome = string.Empty;
+        NovoProdutoPreco = 0;
+        NovoProdutoCategoriaId = Guid.Empty;
+        NovoProdutoTamanhoId = Guid.Empty;
     }
 }

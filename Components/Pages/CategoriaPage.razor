@@ -1,10 +1,11 @@
 @page "/Categoria"
+
+@inject ICategoriaService CategoriaService
+@rendermode InteractiveServer
+@using Blazorise.DataGrid
 @using Blazorise
 @using ControleDeEstoque.DTOs.CategoriaDto
 @using ControleDeEstoque.Services.ICategoriaService
-@inject ICategoriaService CategoriaService
-
-<h3>Cadastro de Categorias</h3>
 
 @if (categorias == null)
 {
@@ -12,32 +13,38 @@
 }
 else
 {
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Código</th>
-            <th>Nome</th>
-            <th>Descrição</th>
-            <th>
-                <button class="btn btn-success" @onclick="OpenAddCategoriaModal">Registrar Categoria</button>
-            </th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var categoria in categorias)
-        {
-            <tr>
-                <td>@categoria.Id</td>
-                <td>@categoria.Nome</td>
-                <td>@categoria.Descricao</td>
-                <td>
-                    <button class="btn btn-warning" @onclick="() => OpenUpdateCategoriaModal(categoria)">Atualizar</button>
-                    <button class="btn btn-danger" @onclick="() => OpenDeleteCategoriaModal(categoria)">Deletar</button>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <div style="display: inline;">
+        <h3 style="display: inline;">Categorias</h3>
+        <h5 style="display: inline;"> | Gerenciamento de Categorias</h5>
+    </div>
+    <Row>
+        <Column>
+            <Card Margin="Margin.Is4.OnY">
+                <CardBody>
+                    <Div class="d-flex justify-content-end mb-2">
+                        <Div>
+                            <Button Color="Color.Success" Clicked="AbrirModalAdicionarCategoria">Nova Categoria</Button>
+                            <Button Color="Color.Warning" Clicked="() => AbrirModalAtualizarCategoria(_categoriaDtoSelecionada)">Atualizar</Button>
+                            <Button Color="Color.Danger" Clicked="() => OptionDeleteCategoriaButton(_categoriaDtoSelecionada)">Excluir</Button>
+                        </Div>
+                    </Div>
+                    <DataGrid TItem="CategoriaDto"
+                              Data="categorias"
+                              @bind-SelectedRow="_categoriaDtoSelecionada"
+                              Striped="true"
+                              Bordered="true"
+                              Hoverable="true"
+                              CommandMode="DataGridCommandMode.ButtonRow"
+                              EditMode="DataGridEditMode.Popup">
+                        <DataGridColumns>
+                            <DataGridColumn TItem="CategoriaDto" Field="@nameof(CategoriaDto.Nome)" Caption="Nome" Editable />
+                            <DataGridColumn TItem="CategoriaDto" Field="@nameof(CategoriaDto.Descricao)" Caption="Descrição" Editable />
+                        </DataGridColumns>
+                    </DataGrid>
+                </CardBody>
+            </Card>
+        </Column>
+    </Row>
 }
 
 <Modal @ref="modalCriarCategoria">
@@ -48,16 +55,14 @@ else
         <ModalBody>
             <Field>
                 <Label for="CategoriaNome" class="form-label">Nome</Label>
-                <input type="text" class="form-control" id="CategoriaNome" @bind="NovoCategoriaNome"
-                       placeholder="Insira o nome da categoria"/>
+                <input type="text" class="form-control" id="CategoriaNome" @bind-value="NovoCategoriaNome" placeholder="Insira o nome da categoria"/>
                 <Label for="CategoriaDescricao" class="form-label">Descrição</Label>
-                <input type="text" class="form-control" id="CategoriaDescricao" @bind="NovoCategoriaDescricao"
-                       placeholder="Insira a descrição da categoria"/>
+                <input type="text" class="form-control" id="CategoriaDescricao" @bind-value="NovoCategoriaDescricao" placeholder="Insira a descrição da categoria"/>
             </Field>
         </ModalBody>
         <ModalFooter>
-            <Button Color="Color.Success" @onclick="InsertCategoria">Salvar</Button>
-            <Button Color="Color.Danger" @onclick="CloseModalCriarCategoria">Cancelar</Button>
+            <Button Color="Color.Success" @onclick="InsertCategoriaButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelCategoriaButton">Cancelar</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
@@ -65,21 +70,19 @@ else
 <Modal @ref="modalAtualizarCategoria">
     <ModalContent Size="ModalSize.Default" Centered="true">
         <ModalHeader>
-            <strong>Atualizar categoria</strong>
+            <strong>Atualizar Categoria</strong>
         </ModalHeader>
         <ModalBody>
             <Field>
                 <Label for="CategoriaNome" class="form-label">Nome</Label>
-                <input type="text" class="form-control" id="CategoriaNome" @bind="AtualizarCategoriaNome"
-                       placeholder="Insira o nome da categoria"/>
+                <input type="text" class="form-control" id="CategoriaNome" @bind-value="NovoCategoriaNome" placeholder="Insira o nome da categoria"/>
                 <Label for="CategoriaDescricao" class="form-label">Descrição</Label>
-                <input type="text" class="form-control" id="CategoriaDescricao" @bind="AtualizarCategoriaDescricao"
-                       placeholder="Insira a descrição da categoria"/>
+                <input type="text" class="form-control" id="CategoriaDescricao" @bind-value="NovoCategoriaDescricao" placeholder="Insira a descrição da categoria"/>
             </Field>
         </ModalBody>
         <ModalFooter>
-            <Button Color="Color.Success" @onclick="UpdateCategoria">Salvar</Button>
-            <Button Color="Color.Danger" @onclick="CloseModalAtualizarCategoria">Cancelar</Button>
+            <Button Color="Color.Success" @onclick="UpdateCategoriaButton">Salvar</Button>
+            <Button Color="Color.Danger" @onclick="CancelCategoriaButton">Cancelar</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
@@ -87,100 +90,91 @@ else
 <Modal @ref="modalDeletarCategoria">
     <ModalContent Size="ModalSize.Default" Centered="true">
         <ModalHeader>
-            <strong>Deletar categoria</strong>
+            <strong>Deletar Categoria</strong>
         </ModalHeader>
         <ModalBody>
             @if (_categoriaDtoSelecionada != null)
             {
-                <p>Tem certeza que deseja deletar a categoria <strong>@_categoriaDtoSelecionada.Nome</strong>?</p>
+                <p>Tem certeza que deseja deletar a categoria @_categoriaDtoSelecionada.Nome?</p>
             }
         </ModalBody>
         <ModalFooter>
-            <Button Color="Color.Danger" @onclick="DeleteCategoria">Deletar</Button>
-            <Button Color="Color.Secondary" @onclick="CloseModalDeletarCategoria">Cancelar</Button>
+            <Button class="btn btn-danger" @onclick="DeleteCategoriaButton">Deletar</Button>
+            <Button class="btn btn-secondary" @onclick="CancelCategoriaButton">Cancelar</Button>
         </ModalFooter>
     </ModalContent>
 </Modal>
 
-@code {
+@code
+{
     private List<CategoriaDto> categorias;
-    private Modal modalCriarCategoria;
-    private Modal modalAtualizarCategoria;
-    private Modal modalDeletarCategoria;
+    private Modal modalCriarCategoria = new Modal();
+    private Modal modalAtualizarCategoria = new Modal();
+    private Modal modalDeletarCategoria = new Modal();
     private CategoriaDto _categoriaDtoSelecionada;
     private string NovoCategoriaNome;
     private string NovoCategoriaDescricao;
-    private string AtualizarCategoriaNome;
-    private string AtualizarCategoriaDescricao;
 
     protected override async Task OnInitializedAsync()
-    {
-        await CarregarCategorias();
-    }
-
-    private async Task CarregarCategorias()
     {
         categorias = await CategoriaService.ListarCategorias();
     }
 
-    private void OpenAddCategoriaModal()
+    private void AbrirModalAdicionarCategoria()
     {
         NovoCategoriaNome = string.Empty;
         NovoCategoriaDescricao = string.Empty;
         modalCriarCategoria.Show();
     }
 
-    private async Task InsertCategoria()
+    private void AbrirModalAtualizarCategoria(CategoriaDto categoriaDto)
     {
-        var categoriaDto = new CategoriaDto
+        _categoriaDtoSelecionada = categoriaDto;
+        NovoCategoriaNome = categoriaDto.Nome;
+        NovoCategoriaDescricao = categoriaDto.Descricao;
+        modalAtualizarCategoria.Show();
+    }
+
+    private void CancelCategoriaButton()
+    {
+        NovoCategoriaNome = string.Empty;
+        NovoCategoriaDescricao = string.Empty;
+        modalCriarCategoria.Hide();
+        modalAtualizarCategoria.Hide();
+        modalDeletarCategoria.Hide();
+    }
+
+    private async Task InsertCategoriaButton()
+    {
+        CategoriaDto categoriaDto = new CategoriaDto
         {
             Nome = NovoCategoriaNome,
             Descricao = NovoCategoriaDescricao,
         };
-
         await CategoriaService.AdicionarCategoria(categoriaDto);
-        await CarregarCategorias();
+        categorias = await CategoriaService.ListarCategorias();
         modalCriarCategoria.Hide();
     }
 
-    private void OpenUpdateCategoriaModal(CategoriaDto categoria)
+    private async Task UpdateCategoriaButton()
     {
-        _categoriaDtoSelecionada = categoria;
-        AtualizarCategoriaNome = categoria.Nome;
-        AtualizarCategoriaDescricao = categoria.Descricao;
-        modalAtualizarCategoria.Show();
+        _categoriaDtoSelecionada.Nome = NovoCategoriaNome;
+        _categoriaDtoSelecionada.Descricao = NovoCategoriaDescricao;
+        await CategoriaService.AtualizarCategoria(_categoriaDtoSelecionada);
+        categorias = await CategoriaService.ListarCategorias();
+        modalAtualizarCategoria.Hide();
     }
 
-    private async Task UpdateCategoria()
+    private void OptionDeleteCategoriaButton(CategoriaDto categoriaDto)
     {
-        if (_categoriaDtoSelecionada != null)
-        {
-            _categoriaDtoSelecionada.Nome = AtualizarCategoriaNome;
-            _categoriaDtoSelecionada.Descricao = AtualizarCategoriaDescricao;
-
-            await CategoriaService.AtualizarCategoria(_categoriaDtoSelecionada);
-            await CarregarCategorias();
-            modalAtualizarCategoria.Hide();
-        }
-    }
-
-    private void OpenDeleteCategoriaModal(CategoriaDto categoria)
-    {
-        _categoriaDtoSelecionada = categoria;
+        _categoriaDtoSelecionada = categoriaDto;
         modalDeletarCategoria.Show();
     }
 
-    private async Task DeleteCategoria()
+    private async Task DeleteCategoriaButton()
     {
-        if (_categoriaDtoSelecionada != null)
-        {
-            await CategoriaService.DeletarCategoria(_categoriaDtoSelecionada.Id);
-            await CarregarCategorias();
-            modalDeletarCategoria.Hide();
-        }
+        await CategoriaService.DeletarCategoria(_categoriaDtoSelecionada.Id);
+        categorias = await CategoriaService.ListarCategorias();
+        modalDeletarCategoria.Hide();
     }
-
-    private void CloseModalCriarCategoria() => modalCriarCategoria.Hide();
-    private void CloseModalAtualizarCategoria() => modalAtualizarCategoria.Hide();
-    private void CloseModalDeletarCategoria() => modalDeletarCategoria.Hide();
 }
