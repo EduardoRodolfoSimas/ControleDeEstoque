@@ -24,8 +24,8 @@ else
                     <Div class="d-flex justify-content-end mb-2">
                         <Div>
                             <Button Color="Color.Success" Clicked="AbrirModalAdicionarCategoria">Nova Categoria</Button>
-                            <Button Color="Color.Warning" Clicked="() => AbrirModalAtualizarCategoria(_categoriaDtoSelecionada)">Atualizar</Button>
-                            <Button Color="Color.Danger" Clicked="() => OptionDeleteCategoriaButton(_categoriaDtoSelecionada)">Excluir</Button>
+                            <Button Color="Color.Warning" Disabled="(_categoriaDtoSelecionada is null)" Clicked="() => AbrirModalAtualizarCategoria(_categoriaDtoSelecionada)">Atualizar</Button>
+                            <Button Color="Color.Danger" Disabled="(_categoriaDtoSelecionada is null)" Clicked="() => OptionDeleteCategoriaButton(_categoriaDtoSelecionada)">Excluir</Button>
                         </Div>
                     </Div>
                     <DataGrid TItem="CategoriaDto"

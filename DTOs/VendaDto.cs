@@ -5,6 +5,8 @@ namespace ControleDeEstoque.DTOs.VendaDto;
     {
         public Guid Id { get; set; }
         public DateTime DataVenda { get; set; }
+        
+        public int Quantidade { get; set; }
         public Guid MetodoPagamentoId { get; set; }
         public string MetodoPagamento { get; set; }
         public decimal ValorTotal { get; set; }

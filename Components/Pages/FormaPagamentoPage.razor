@@ -24,8 +24,8 @@ else
                     <Div class="d-flex justify-content-end mb-2">
                         <Div>
                             <Button Color="Color.Success" Clicked="AbrirModalAdicionarFormaPagamento">Nova Forma de Pagamento</Button>
-                            <Button Color="Color.Warning" Clicked="() => AbrirModalAtualizarFormaPagamento(_formaPagamentoDtoSelecionada)">Atualizar</Button>
-                            <Button Color="Color.Danger" Clicked="() => OptionDeleteFormaPagamentoButton(_formaPagamentoDtoSelecionada)">Excluir</Button>
+                            <Button Color="Color.Warning" Disabled="(_formaPagamentoDtoSelecionada is null)" Clicked="() => AbrirModalAtualizarFormaPagamento(_formaPagamentoDtoSelecionada)">Atualizar</Button>
+                            <Button Color="Color.Danger" Disabled="(_formaPagamentoDtoSelecionada is null)" Clicked="() => OptionDeleteFormaPagamentoButton(_formaPagamentoDtoSelecionada)">Excluir</Button>
                         </Div>
                     </Div>
                     <DataGrid TItem="FormaDePagamentoDto"
@@ -37,8 +37,8 @@ else
                               CommandMode="DataGridCommandMode.ButtonRow"
                               EditMode="DataGridEditMode.Popup">
                         <DataGridColumns>
-                            <DataGridColumn TItem="FormaDePagamentoDto" Field="@nameof(FormaDePagamentoDto.Tipo)" Caption="Tipo" Editable />
-                            <DataGridColumn TItem="FormaDePagamentoDto" Field="@nameof(FormaDePagamentoDto.Descricao)" Caption="Descrição" Editable />
+                            <DataGridColumn TItem="FormaDePagamentoDto" Field="@nameof(FormaDePagamentoDto.Tipo)" Caption="Tipo" Editable/>
+                            <DataGridColumn TItem="FormaDePagamentoDto" Field="@nameof(FormaDePagamentoDto.Descricao)" Caption="Descrição" Editable/>
                         </DataGridColumns>
                     </DataGrid>
                 </CardBody>

@@ -16,6 +16,11 @@ public class ProdutoService : IProdutoService.IProdutoService
     {
         return await _httpClient.GetFromJsonAsync<List<ProdutoDto>>(ApiUrl) ?? new List<ProdutoDto>();
     }
+    
+    public async Task<ProdutoDto?> ListarProdutoPorId(Guid id)
+    {
+        return await _httpClient.GetFromJsonAsync<ProdutoDto>($"{ApiUrl}/{id}");
+    }
 
     public async Task<ProdutoDto> AdicionarProduto(ProdutoDto produto)
     {

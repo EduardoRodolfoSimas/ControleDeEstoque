@@ -51,6 +51,10 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23FFFFFF' class='bi bi-bookmarks' viewBox='0 0 16 16'%3E%3Cpath d='M2 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v11.5a.5.5 0 0 1-.777.416L7 13.101l-4.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v10.566l3.723-2.482a.5.5 0 0 1 .554 0L11 14.566V4a1 1 0 0 0-1-1z'/%3E%3Cpath d='M4.268 1H12a1 1 0 0 1 1 1v11.768l.223.148A.5.5 0 0 0 14 13.5V2a2 2 0 0 0-2-2H6a2 2 0 0 0-1.732 1'/%3E%3C/svg%3E");
 }
 
+.bi-list-pagamento-nav-menu {
+    background-image: url("data:image/svg+xml,%3Csvg fill='%23FFFFFF' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M31 7H1a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h30a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1ZM25.09 23H6.91A6 6 0 0 0 2 18.09v-4.18A6 6 0 0 0 6.91 9h18.18A6 6 0 0 0 30 13.91v4.18A6 6 0 0 0 25.09 23ZM30 11.86A4 4 0 0 1 27.14 9H30ZM4.86 9A4 4 0 0 1 2 11.86V9ZM2 20.14A4 4 0 0 1 4.86 23H2ZM27.14 23A4 4 0 0 1 30 20.14V23Z'/%3E%3Cpath d='M7.51.71a1 1 0 0 0-.76-.1 1 1 0 0 0-.61.46l-2 3.43a1 1 0 0 0 1.74 1L7.38 2.94l5.07 2.93a1 1 0 0 0 1-1.74Z'/%3E%3Cpath d='M24.49 31.29a1 1 0 0 0 .5.14.78.78 0 0 0 .26 0 1 1 0 0 0 .61-.46l2-3.43a1 1 0 1 0-1.74-1l-1.48 2.56-5.07-2.93a1 1 0 0 0-1 1.74Z'/%3E%3Cpath d='M16 10a6 6 0 1 0 6 6 6 6 0 0 0-6-6Zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4Z'/%3E%3C/svg%3E");
+}
+
 .nav-item {
     font-size: 0.9rem;
     padding-bottom: 0.5rem;

@@ -22,11 +22,10 @@ else
         <Card Margin="Margin.Is4.OnY">
             <CardBody>
                 <Div class="d-flex justify-content-end mb-2">
-                    
                     <Div>
-                        <Button Color="Color.Success" Clicked="AbrirModalAdicionarTamanho">Novo tamanho</Button>
-                        <Button Color="Color.Warning" Clicked="() => AbrirModalAtualizarTamanho(_tamanhoDtoSelecionado)">Atualizar</Button>
-                        <Button Color="Color.Danger" Clicked="() => OptionDeleteTamanhoButton(_tamanhoDtoSelecionado)">Excluir</Button>
+                        <Button Color="Color.Success" @onclick="AbrirModalAdicionarTamanho">Novo tamanho</Button>
+                        <Button Color="Color.Warning" Disabled="(_tamanhoDtoSelecionado is null)" @onclick="() => AbrirModalAtualizarTamanho(_tamanhoDtoSelecionado)">Atualizar</Button>
+                        <Button Color="Color.Danger" Disabled="(_tamanhoDtoSelecionado is null)" @onclick="() => OptionDeleteTamanhoButton(_tamanhoDtoSelecionado)">Excluir</Button>
                     </Div>
                 </Div>
                 <DataGrid TItem="TamanhoDto"
@@ -38,46 +37,9 @@ else
                           CommandMode="DataGridCommandMode.ButtonRow"
                           EditMode="DataGridEditMode.Popup">
                     <DataGridColumns>
-                        <DataGridCommandColumn NewCommandAllowed="false" 
-                                               EditCommandAllowed="false" 
-                                               DeleteCommandAllowed="false"  
-                                               CancelCommandAllowed>
-                            <SaveCommandTemplate>
-                                <Button ElementId="btnSave" 
-                                        Type="ButtonType.Submit" 
-                                        PreventDefaultOnSubmit 
-                                        Color="Color.Primary" 
-                                        Clicked="@context.Clicked">
-                                    @context.LocalizationString
-                                </Button>
-                            </SaveCommandTemplate>
-                            <CancelCommandTemplate>
-                                <Button ElementId="btnCancel" 
-                                        Color="Color.Secondary" 
-                                        Clicked="@context.Clicked">
-                                    @context.LocalizationString
-                                </Button>
-                            </CancelCommandTemplate>
-                        </DataGridCommandColumn>
                         <DataGridColumn TItem="TamanhoDto" Field="@nameof(TamanhoDto.Nome)" Caption="Tamanho" Editable />
                         <DataGridColumn TItem="TamanhoDto" Field="@nameof(TamanhoDto.Descricao)" Caption="Descrição" Editable />
                     </DataGridColumns>
-                    <ButtonRowTemplate>
-                        <Button Color="Color.Primary" 
-                                Disabled="(_tamanhoDtoSelecionado is null)" 
-                                Clicked="context.EditCommand.Clicked">
-                            Edit
-                        </Button>
-                        <Button Color="Color.Danger" 
-                                Disabled="(_tamanhoDtoSelecionado is null)" 
-                                Clicked="context.DeleteCommand.Clicked">
-                            Delete
-                        </Button>
-                        <Button Color="Color.Link" 
-                                Clicked="context.ClearFilterCommand.Clicked">
-                            Clear Filter
-                        </Button>
-                    </ButtonRowTemplate>
                 </DataGrid>
             </CardBody>
         </Card>

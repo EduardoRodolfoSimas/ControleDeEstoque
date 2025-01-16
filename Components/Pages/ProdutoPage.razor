@@ -7,9 +7,11 @@
 @using ControleDeEstoque.Services.ICategoriaService
 @using ControleDeEstoque.Services.IProdutoService
 @using ControleDeEstoque.Services.ITamanhos
+@using Microsoft.Extensions.Logging.Abstractions
 @inject IProdutoService ProdutoService
 @inject ICategoriaService CategoriaService
 @inject ITamanhoService TamanhoService
+@rendermode InteractiveServer
 
 <PageTitle>Gerenciamento de Produtos</PageTitle>
 
@@ -28,9 +30,11 @@ else
             <Card Margin="Margin.Is4.OnY">
                 <CardBody>
                     <Div class="d-flex justify-content-end mb-2">
-                        <Button Color="Color.Success" Clicked="AbrirModalAdicionarProduto">Novo Produto</Button>
-                        <Button Color="Color.Warning" Disabled="(_produtoSelecionado is null)" Clicked="() => AbrirModalAtualizarProduto(_produtoSelecionado)">Atualizar</Button>
-                        <Button Color="Color.Danger" Disabled="(_produtoSelecionado is null)" Clicked="() => AbrirModalDeletarProduto(_produtoSelecionado)">Excluir</Button>
+                        <Div>
+                            <Button Color="Color.Success" Clicked="AbrirModalAdicionarProduto">Novo Produto</Button>
+                            <Button Color="Color.Warning" Disabled="(_produtoSelecionado is null)" Clicked="() => AbrirModalAtualizarProduto(_produtoSelecionado)">Atualizar</Button>
+                            <Button Color="Color.Danger" Disabled="(_produtoSelecionado is null)" Clicked="() => AbrirModalDeletarProduto(_produtoSelecionado)">Excluir</Button>
+                        </Div>
                     </Div>
                     <DataGrid TItem="ProdutoDto"
                               Data="produtos"
@@ -38,14 +42,15 @@ else
                               Striped="true"
                               Bordered="true"
                               Hoverable="true"
-                              ShowPager="true"
-                              PageSize="10">
+                              CommandMode="DataGridCommandMode.ButtonRow"
+                              EditMode="DataGridEditMode.Popup">
                         <DataGridColumns>
-                            <DataGridColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.Nome)" Caption="Nome do Produto" />
-                            <DataGridNumericColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.ValorUnitario)" Caption="Preço" DisplayFormat="{0:C}" />
-                            <DataGridColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.CategoriaNome)" Caption="Categoria" />
-                            <DataGridColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.TamanhoNome)" Caption="Tamanho" />
-                            <DataGridNumericColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.Quantidade)" Caption="Quantidade" />
+                            <DataGridColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.Sku)" Caption="Código"></DataGridColumn>
+                            <DataGridColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.Nome)" Caption="Nome do Produto"/>
+                            <DataGridColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.CategoriaNome)" Caption="Categoria"/>
+                            <DataGridColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.TamanhoNome)" Caption="Tamanho"/>
+                            <DataGridNumericColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.ValorUnitario)" Caption="Preço" DisplayFormat="{0:C}"/>
+                            <DataGridNumericColumn TItem="ProdutoDto" Field="@nameof(ProdutoDto.Quantidade)" Caption="Quantidade"/>
                         </DataGridColumns>
                     </DataGrid>
                 </CardBody>
@@ -62,14 +67,46 @@ else
         </ModalHeader>
         <ModalBody>
             <Field>
-                <Label for="ProdutoNome" class="form-label">Nome do Produto</Label>
-                <input type="text" class="form-control" id="ProdutoNome" @bind-value="NovoProdutoNome" placeholder="Insira o nome do produto" />
-                <Label for="ProdutoPreco" class="form-label">Preço</Label>
-                <input type="number" class="form-control" id="ProdutoPreco" @bind-value="NovoProdutoPreco" placeholder="Insira o preço do produto" />
+                <Label for="ProdutoSku" class="form-label">Código</Label>
+                <input type="text" class="form-control" id="ProdutoSku" @bind-value="NovoProdutoSku" placeholder="Insira o código do produto"/>
+                <Label for="ProdutoNome" class="form-label">Produto</Label>
+                <input type="text" class="form-control" id="ProdutoNome" @bind-value="NovoProdutoNome" placeholder="Insira o nome do produto"/>
                 <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
-                <Select TValue="Guid" @bind-value="NovoProdutoCategoriaId" Data="categorias" TextField="Nome" ValueField="Id" />
+                <Select TValue="Guid" @bind-value="NovoProdutoCategoriaId">
+                    <SelectItem Value="default(Guid)">Selecione uma categoria</SelectItem>
+                    @if (categorias != null)
+                    {
+                        foreach (var categoria in categorias)
+                        {
+                            <SelectItem Value="@categoria.Id">@categoria.Nome</SelectItem>
+                            NovoProdutoCategoriaId = categoria.Id;
+                        }
+                    }
+                    else
+                    {
+                        <SelectItem Value="default(Guid)" Disabled="true">Nenhuma categoria cadastrada</SelectItem>
+                    }
+                </Select>
                 <Label for="ProdutoTamanho" class="form-label">Tamanho</Label>
-                <Select TValue="Guid" @bind-value="NovoProdutoTamanhoId" Data="tamanhos" TextField="Descricao" ValueField="Id" />
+                <Select TValue="Guid" @bind-Value="NovoProdutoTamanhoId">
+                    <SelectItem Value="default(Guid)">Selecione um tamanho</SelectItem>
+                    @if (tamanhos != null)
+                    {
+                        foreach (var tamanho in tamanhos)
+                        {
+                            <SelectItem Value="@tamanho.Id">@tamanho.Nome</SelectItem>
+                            NovoProdutoTamanhoId = tamanho.Id;
+                        }
+                    }
+                    else
+                    {
+                        <SelectItem Value="default(Guid)" Disabled="true">Nenhum tamanho cadastrado</SelectItem>
+                    }
+                </Select>
+                <Label for="ProdutoPreco" class="form-label">Preço</Label>
+                <input type="number" class="form-control" id="ProdutoPreco" @bind-value="NovoProdutoPreco" placeholder="Insira o preço do produto"/>
+                <Label for="ProdutoQuantidade" class="form-label">Quantidade</Label>
+                <input type="number" class="form-control" id="ProdutoQuantidade" @bind-value="NovoProdutoQuantidade" placeholder="Insira a quantidade em estoque"/>
             </Field>
         </ModalBody>
         <ModalFooter>
@@ -92,9 +129,38 @@ else
                 <Label for="ProdutoPreco" class="form-label">Preço</Label>
                 <input type="number" class="form-control" id="ProdutoPreco" @bind-value="NovoProdutoPreco" placeholder="Insira o preço do produto" />
                 <Label for="ProdutoCategoria" class="form-label">Categoria</Label>
-                <Select TValue="Guid" @bind-value="NovoProdutoCategoriaId" Data="categorias" TextField="Nome" ValueField="Id" />
-                <Label for="ProdutoTamanho" class="form-label">Tamanho</Label>
-                <Select TValue="Guid" @bind-value="NovoProdutoTamanhoId" Data="tamanhos" TextField="Descricao" ValueField="Id" />
+                <Select TValue="Guid" @bind-value="NovoProdutoCategoriaId">
+                    <SelectItem Value="default(Guid)">Selecione uma categoria</SelectItem>
+                    @if (categorias != null)
+                    {
+                        foreach (var categoria in categorias)
+                        {
+                            <SelectItem Value="@categoria.Id">@categoria.Nome</SelectItem>
+                            NovoProdutoCategoriaId = categoria.Id;
+                        }
+                    }
+                    else
+                    {
+                        <SelectItem Value="default(Guid)" Disabled="true">Nenhuma categoria cadastrada</SelectItem>
+                    }
+                </Select>
+
+                <Label for="ProdutoTamanho" class="form-label" >Tamanho</Label>
+                <Select TValue="Guid" @bind-Value="NovoProdutoTamanhoId">
+                    <SelectItem Value="default(Guid)">Selecione um tamanho</SelectItem>
+                    @if (tamanhos != null)
+                    {
+                        foreach (var tamanho in tamanhos)
+                        {
+                            <SelectItem  Value="@tamanho.Id">@tamanho.Nome</SelectItem>
+                            NovoProdutoTamanhoId = tamanho.Id;
+                        }
+                    }
+                    else
+                    {
+                        <SelectItem Value="default(Guid)" Disabled="true">Nenhum tamanho cadastrado</SelectItem>
+                    }
+                </Select>
             </Field>
         </ModalBody>
         <ModalFooter>
@@ -132,7 +198,9 @@ else
     private Modal modalDeletarProduto = new Modal();
     private ProdutoDto _produtoSelecionado;
     private string NovoProdutoNome;
+    private string NovoProdutoSku;
     private decimal NovoProdutoPreco;
+    private int NovoProdutoQuantidade;
     private Guid NovoProdutoCategoriaId;
     private Guid NovoProdutoTamanhoId;
 
@@ -153,9 +221,11 @@ else
     {
         _produtoSelecionado = produto;
         NovoProdutoNome = produto.Nome;
+        NovoProdutoSku = produto.Sku;
         NovoProdutoPreco = produto.ValorUnitario;
+        NovoProdutoQuantidade = produto.Quantidade;
         NovoProdutoCategoriaId = produto.CategoriaId;
-        NovoProdutoTamanhoId = produto.TamanhoId;
+        NovoProdutoCategoriaId = produto.TamanhoId;
         modalAtualizarProduto.Show();
     }
 
@@ -178,9 +248,11 @@ else
         var novoProduto = new ProdutoDto
         {
             Nome = NovoProdutoNome,
+            Sku = NovoProdutoSku,
             ValorUnitario = NovoProdutoPreco,
+            Quantidade = NovoProdutoQuantidade,
             CategoriaId = NovoProdutoCategoriaId,
-            TamanhoId = NovoProdutoTamanhoId
+            TamanhoId = NovoProdutoTamanhoId,
         };
         await ProdutoService.AdicionarProduto(novoProduto);
         await AtualizarProdutos();
@@ -190,7 +262,9 @@ else
     private async Task UpdateProdutoButton()
     {
         _produtoSelecionado.Nome = NovoProdutoNome;
+        _produtoSelecionado.Sku = NovoProdutoSku;
         _produtoSelecionado.ValorUnitario = NovoProdutoPreco;
+        _produtoSelecionado.Quantidade = NovoProdutoQuantidade;
         _produtoSelecionado.CategoriaId = NovoProdutoCategoriaId;
         _produtoSelecionado.TamanhoId = NovoProdutoTamanhoId;
         await ProdutoService.AtualizarProduto(_produtoSelecionado);
@@ -213,7 +287,9 @@ else
     private void LimparCampos()
     {
         NovoProdutoNome = string.Empty;
+        NovoProdutoSku = string.Empty;
         NovoProdutoPreco = 0;
+        NovoProdutoQuantidade = 0;
         NovoProdutoCategoriaId = Guid.Empty;
         NovoProdutoTamanhoId = Guid.Empty;
     }
