@@ -7,7 +7,7 @@ namespace ControleDeEstoque.Services.VendasService;
 public class VendasService : IVendasService.IVendasService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://localhost:7098/vendaitem";
+    private const string ApiUrl = "https://localhost:7098/vendas";
 
     public VendasService(HttpClient httpClient)
     {
@@ -18,7 +18,7 @@ public class VendasService : IVendasService.IVendasService
     {
         return await _httpClient.GetFromJsonAsync<List<VendaDto>>(ApiUrl) ?? new List<VendaDto>();
     }
-    
+        
     public async Task<Dictionary<DateTime, List<VendaDto>>> ObterVendasAgrupadasPorDia()
     {
         var vendas = await ListarVendas();

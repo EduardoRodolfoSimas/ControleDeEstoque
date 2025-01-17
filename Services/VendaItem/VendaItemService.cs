@@ -1,27 +1,30 @@
 ﻿using ControleDeEstoque.DTOs.VendaItemDto;
 using ControleDeEstoque.Services.IVendaItemService;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ControleDeEstoque.Services.VendaItemService;
 
 public class VendaItemService : IVendaItemService.IVendaItemService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://localhost:44345/produto";
+    private const string ApiUrl = "https://localhost:7098/vendaitem";
 
     public VendaItemService(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
-    public async Task<List<VendaItemDto>> ListarVendaItens()
+    public async Task<List<VendaItemDto>> ListarVendaItens(Guid vendaId)
     {
-        return await _httpClient.GetFromJsonAsync<List<VendaItemDto>>(ApiUrl) ?? new List<VendaItemDto>();
+        return await _httpClient.GetFromJsonAsync<List<VendaItemDto>>($"{ApiUrl}/{vendaId}/item") ?? new List<VendaItemDto>();
+       // return await _httpClient.GetFromJsonAsync<List<VendaItemDto>>(ApiUrl) ?? new List<VendaItemDto>();
     }
 
     public async Task<VendaItemDto> AdicionarVendaItem(VendaItemDto vendaItemDto)
     {
-        var response = await _httpClient.PostAsJsonAsync(ApiUrl, vendaItemDto);
+        var response = await _httpClient.PostAsJsonAsync($"{ApiUrl}/{vendaItemDto.VendaId}/item", vendaItemDto);
         response.EnsureSuccessStatusCode();
+        
         return await response.Content.ReadFromJsonAsync<VendaItemDto>();
     }
 

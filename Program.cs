@@ -10,9 +10,11 @@ using ControleDeEstoque.Services.ICategoriaService;
 using ControleDeEstoque.Services.IFormaDePagamentoService;
 using ControleDeEstoque.Services.IProdutoService;
 using ControleDeEstoque.Services.ITamanhos;
-using ControleDeEstoque.Services.IVendaItemService;
 using ControleDeEstoque.Services.TamanhoService;
 using ControleDeEstoque.Services.VendasService;
+using ControleDeEstoque.Services.VendaItemService;
+using ControleDeEstoque.Services.IVendaItemService;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,7 @@ builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IVendasService, VendasService>();
 builder.Services.AddScoped<ITamanhoService, TamanhoService>();
 builder.Services.AddScoped<IFormaDePagamentoService, FormaDePagamentoService>();
+builder.Services.AddScoped<IVendaItemService, VendaItemService>();
 builder.Services.AddHttpClient("API", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseAddress"]);
