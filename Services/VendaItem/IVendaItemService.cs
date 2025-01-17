@@ -1,6 +1,6 @@
 ﻿using ControleDeEstoque.DTOs.VendaItemDto;
 
-namespace ControleDeEstoque.Services.VendaItem;
+namespace ControleDeEstoque.Services.IVendaItemService;
 
 public interface IVendaItemService
 {

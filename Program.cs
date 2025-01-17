@@ -1,6 +1,6 @@
 using ControleDeEstoque.Components;
 using ControleDeEstoque.Services.ProdutoService;
-using ControleDeEstoque.Services.Vendas;
+using ControleDeEstoque.Services.IVendasService;
 using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
@@ -10,6 +10,7 @@ using ControleDeEstoque.Services.ICategoriaService;
 using ControleDeEstoque.Services.IFormaDePagamentoService;
 using ControleDeEstoque.Services.IProdutoService;
 using ControleDeEstoque.Services.ITamanhos;
+using ControleDeEstoque.Services.IVendaItemService;
 using ControleDeEstoque.Services.TamanhoService;
 using ControleDeEstoque.Services.VendasService;
 

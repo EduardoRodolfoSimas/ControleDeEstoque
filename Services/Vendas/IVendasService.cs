@@ -1,6 +1,7 @@
 using ControleDeEstoque.DTOs.VendaDto;
+using ControleDeEstoque.DTOs.VendaItemDto;
 
-namespace ControleDeEstoque.Services.Vendas;
+namespace ControleDeEstoque.Services.IVendasService;
 
 public interface IVendasService
 {
@@ -9,4 +10,6 @@ public interface IVendasService
     Task<VendaDto> AtualizarVenda(VendaDto vendaDto);
     Task<VendaDto?> DeletarVenda(Guid id);
     Task<Dictionary<DateTime, List<VendaDto>>> ObterVendasAgrupadasPorDia();
+    Task AdicionarItem(VendaItemDto vendaItemDto); // Adicione este método
+
 }

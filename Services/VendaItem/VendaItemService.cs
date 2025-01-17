@@ -1,12 +1,12 @@
 ﻿using ControleDeEstoque.DTOs.VendaItemDto;
-using ControleDeEstoque.Services.VendaItem;
+using ControleDeEstoque.Services.IVendaItemService;
 
 namespace ControleDeEstoque.Services.VendaItemService;
 
-public class VendaItemService : IVendaItemService
+public class VendaItemService : IVendaItemService.IVendaItemService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://localhost:7098/vendas";
+    private const string ApiUrl = "https://localhost:44345/produto";
 
     public VendaItemService(HttpClient httpClient)
     {

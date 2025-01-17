@@ -1,9 +1,10 @@
 using ControleDeEstoque.DTOs.VendaDto;
-using ControleDeEstoque.Services.Vendas;
+using ControleDeEstoque.DTOs.VendaItemDto;
+using ControleDeEstoque.Services.IVendasService;
 
 namespace ControleDeEstoque.Services.VendasService;
 
-public class VendasService : IVendasService
+public class VendasService : IVendasService.IVendasService
 {
     private readonly HttpClient _httpClient;
     private const string ApiUrl = "https://localhost:7098/vendaitem";
@@ -49,6 +50,11 @@ public class VendasService : IVendasService
             return await response.Content.ReadFromJsonAsync<VendaDto>();
         }
         return null;
+    }
+    public async Task AdicionarItem(VendaItemDto vendaItemDto) // Implemente este método
+    {
+        var response = await _httpClient.PostAsJsonAsync($"{ApiUrl}/itens", vendaItemDto);
+        response.EnsureSuccessStatusCode();
     }
     
 }

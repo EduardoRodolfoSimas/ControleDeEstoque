@@ -8,12 +8,9 @@
 @using ControleDeEstoque.DTOs.VendaItemDto
 @using ControleDeEstoque.Services.IFormaDePagamentoService
 @using ControleDeEstoque.Services.IProdutoService
-@using ControleDeEstoque.Services.VendaItem
-@using ControleDeEstoque.Services.VendaItemService
-@using ControleDeEstoque.Services.Vendas
+@using ControleDeEstoque.Services.IVendasService
 @rendermode InteractiveServer
 
-@inject IVendaItemService VendaItemService
 @inject IVendasService VendaService
 @inject IProdutoService ProdutoService
 @inject IFormaDePagamentoService FormaDePagamentoService
@@ -144,7 +141,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await VendaItemService.ListarVendaItens();
         FormasDePagamento = await FormaDePagamentoService.ListarFormasDePagamento();
         VendasDoDia = await VendaService.ListarVendas();
     }
@@ -167,8 +163,7 @@ else
             NomeProduto = "Produto não encontrado.";
             return;
         }
-
-        NomeProduto = ProdutoSelecionado.Nome;
+        
         var item = new VendaItemDto
         {
             ProdutoId = ProdutoSelecionado.Id,
@@ -177,7 +172,6 @@ else
             Subtotal = ProdutoSelecionado.ValorUnitario * QuantidadeVendida
         };
         ItensVendidos.Add(item);
-        await VendaItemService.AdicionarVendaItem(item);
 
         ProdutoSku = string.Empty;
         NomeProduto = string.Empty;
@@ -197,21 +191,39 @@ else
             return;
         }
 
+        // Gerar o ID da nova venda
+        var novaVendaId = Guid.NewGuid();
+
+        // Criar a venda sem os itens primeiro, para salvar o ID no banco
         var novaVenda = new VendaDto
         {
-            DataVenda = DateTime.Now,
+            Id = novaVendaId, // Atribuindo o ID da nova venda
             MetodoPagamentoId = NovaFormaDePagamentoId,
-            Itens = ItensVendidos.Select(i => new VendaItemDto
-            {
-                ProdutoId = i.ProdutoId,
-                Quantidade = i.Quantidade,
-                ValorUnitario = i.ValorUnitario
-            }).ToList(),
             ValorTotal = ItensVendidos.Sum(i => i.Subtotal)
         };
+
+        // Salvar a venda no banco de dados
         await VendaService.AdicionarVenda(novaVenda);
+
+        // Agora, criar os itens de venda com o Id da venda já atribuído
+        var itensVenda = ItensVendidos.Select(i => new VendaItemDto
+        {
+            ProdutoId = i.ProdutoId,
+            Quantidade = i.Quantidade,
+            ValorUnitario = i.ValorUnitario,
+            VendaId = novaVendaId // Usando o ID da venda gerado para os itens
+        }).ToList();
+
+        // Adicionar os itens da venda
+        foreach (var item in itensVenda)
+        {
+            await VendaService.AdicionarItem(item); // Assumindo que existe um método para adicionar itens de venda
+        }
+
+        // Agora que a venda e os itens foram salvos, podemos finalizar o processo
         VendasDoDia.Add(novaVenda);
 
+        // Limpar as variáveis e estados após a venda
         ItensVendidos.Clear();
         NovaFormaDePagamentoId = Guid.Empty;
         ModalRegistrarVenda.Hide();
