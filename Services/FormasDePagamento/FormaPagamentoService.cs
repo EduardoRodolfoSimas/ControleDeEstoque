@@ -5,7 +5,7 @@ namespace ControleDeEstoque.Services.FormaDePagamentoService
     public class FormaDePagamentoService : IFormaDePagamentoService.IFormaDePagamentoService
     {
         private readonly HttpClient _httpClient;
-        private const string ApiUrl = "https://localhost:7098/pagamento";
+        private const string ApiUrl = "https://localhost:5012/pagamento";
 
         public FormaDePagamentoService(HttpClient httpClient)
         {

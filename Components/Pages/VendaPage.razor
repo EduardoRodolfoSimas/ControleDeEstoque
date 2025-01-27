@@ -2,6 +2,7 @@
 
 @using Blazorise
 @using Blazorise.DataGrid
+@using Blazorise.Extensions
 @using ControleDeEstoque.DTOs.FormaDePagamentoDto
 @using ControleDeEstoque.DTOs.ProdutoDto
 @using ControleDeEstoque.DTOs.VendaDto
@@ -45,8 +46,14 @@ else
                               Hoverable="true"
                               RowClicked="ToggleExibirItens">
                         <DataGridColumns>
-                            <DataGridColumn TItem="VendaDto" Field="@nameof(VendaDto.DataVenda)" Caption="Data" DisplayFormat="{0:dd/MM/yyyy HH:mm}" />
-                            <DataGridColumn TItem="VendaDto" Field="@nameof(VendaDto.MetodoPagamento)" Caption="Método de Pagamento" />
+                            <DataGridColumn TItem="VendaDto" Field="@nameof(VendaDto.DataVenda)" Caption="Data da Venda" DisplayFormat="{0:dd/MM/yyyy HH:mm}" />
+                            <DataGridColumn TItem="VendaDto"
+                                            Caption="Método de Pagamento"
+                                            DisplayTemplate="@(context => builder =>
+                                                             {
+                                                                 var formaPagamento = FormasDePagamento.FirstOrDefault(f => f.Id == context.MetodoPagamentoId)?.Tipo ?? "Método não encontrado";
+                                                                 builder.AddContent(0, formaPagamento);
+                                                             })" />
                             <DataGridNumericColumn TItem="VendaDto" Field="@nameof(VendaDto.ValorTotal)" Caption="Valor Total" DisplayFormat="{0:C}" />
                         </DataGridColumns>
                     </DataGrid>
@@ -66,10 +73,10 @@ else
                     <CardBody>
                         <DataGrid TItem="VendaItemDto" Data="ItensExibidos" Striped="true" Bordered="true" Hoverable="true">
                             <DataGridColumns>
-                                <DataGridColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ProdutoId)" Caption="Produto" />
-                                <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.Quantidade)" Caption="Quantidade" />
-                                <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ValorUnitario)" Caption="Valor Unitário" DisplayFormat="{0:C}" />
-                                <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}" />
+                                <DataGridColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ProdutoId)" Caption="Produto"/>
+                                <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ValorUnitario)" Caption="Valor Unitário" DisplayFormat="{0:C}"/>
+                                <DataGridColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.Quantidade)" Caption="Quantidade"/>
+                                <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}"/>
                             </DataGridColumns>
                         </DataGrid>
                     </CardBody>
@@ -86,28 +93,36 @@ else
             <strong>Registrar Nova Venda</strong>
         </ModalHeader>
         <ModalBody>
+            <!-- Campo para buscar produto pelo SKU -->
             <Field>
                 <FieldLabel>Adicionar Produto</FieldLabel>
                 <Addons>
                     <Addon AddonType="AddonType.Body">
                         <TextEdit @bind-Text="ProdutoSku" Placeholder="Digite o código do produto" />
                     </Addon>
-                    <Addon AddonType="AddonType.End">
-                        <Button Color="Color.Default" Clicked="AdicionarProduto">
-                            <Icon Name="IconName.Search" /> Adicionar
-                        </Button>
-                    </Addon>
                 </Addons>
             </Field>
+
+            <!-- Botão separado -->
+            <Div class="mt-3">
+                <Button Color="Color.Default" Clicked="AdicionarProduto">
+                    <Icon Name="IconName.PlusCircle" /> Adicionar Produto
+                </Button>
+            </Div>
+
+            <!-- Nome do produto -->
             <Field>
                 <FieldLabel>Nome do Produto</FieldLabel>
                 <TextEdit @bind-Text="NomeProduto" Disabled="true" />
             </Field>
+
+            <!-- Campo de quantidade -->
             <Field>
                 <FieldLabel>Quantidade</FieldLabel>
                 <NumericEdit TValue="int" @bind-Value="QuantidadeVendida" Min="1" />
             </Field>
 
+            <!-- Itens adicionados -->
             <Field>
                 <FieldLabel>Itens Adicionados</FieldLabel>
                 <DataGrid TItem="VendaItemDto" Data="ItensVendidos" Striped="true" Bordered="true">
@@ -127,6 +142,7 @@ else
                 </DataGrid>
             </Field>
 
+            <!-- Seleção de forma de pagamento -->
             <Field>
                 <Label for="FormaDePagamento">Forma de Pagamento</Label>
                 <Select TValue="Guid" @bind-Value="NovaFormaDePagamentoId">
@@ -165,36 +181,54 @@ else
     private Modal ModalRegistrarVenda;
     private VendaItemDto context;
     private Guid novaVendaId = Guid.NewGuid();
-    
+
 
     protected override async Task OnInitializedAsync()
     {
         FormasDePagamento = await FormaDePagamentoService.ListarFormasDePagamento();
         VendasDoDia = await VendaService.ListarVendas();
     }
+
     private async Task AdicionarProduto()
-    {
+        {
+        // Obtém os produtos cadastrados
         var produtos = await ProdutoService.ListarProdutos();
 
+        // Procura o produto selecionado pelo SKU
         ProdutoSelecionado = produtos.FirstOrDefault(p => p.Sku == ProdutoSku);
         if (ProdutoSelecionado == null)
         {
             NomeProduto = "Produto não encontrado.";
             return;
         }
-        
-        var item = new VendaItemDto
+
+        // Verifica se o produto já está na lista de itens da venda
+        var itemExistente = ItensVendidos.FirstOrDefault(i => i.ProdutoId == ProdutoSelecionado.Id);
+        if (itemExistente != null)
         {
-            Id = Guid.NewGuid(),
-            VendaId = novaVendaId,
-            ProdutoId = ProdutoSelecionado.Id,
-            Quantidade = QuantidadeVendida,
-            ValorUnitario = ProdutoSelecionado.ValorUnitario,
-            Subtotal = ProdutoSelecionado.ValorUnitario * QuantidadeVendida
-        };
-        ItensVendidos.Add(item);
+            // Se o item já existe, apenas atualiza a quantidade
+            itemExistente.Quantidade += QuantidadeVendida;
+            itemExistente.Subtotal = itemExistente.Quantidade * itemExistente.ValorUnitario;
+        }
+        else
+        {
+            // Se o item não existe, cria um novo item
+            var item = new VendaItemDto
+            {
+                Id = Guid.NewGuid(),
+                VendaId = novaVendaId, // A ID da venda já foi gerada no momento de salvar
+                ProdutoId = ProdutoSelecionado.Id,
+                Quantidade = QuantidadeVendida,
+                ValorUnitario = ProdutoSelecionado.ValorUnitario,
+                Subtotal = ProdutoSelecionado.ValorUnitario * QuantidadeVendida
+            };
+            ItensVendidos.Add(item);
+        }
+
+        // Limpa os campos de input
         ProdutoSku = string.Empty;
         NomeProduto = string.Empty;
+        QuantidadeVendida = 1;
     }
 
     private void RemoverItem(VendaItemDto item)
@@ -204,6 +238,9 @@ else
 
     private async Task SalvarVenda()
     {
+        // Gera o ID da venda apenas quando for salvar
+        novaVendaId = Guid.NewGuid();
+
         var novaVenda = new VendaDto
         {
             Id = novaVendaId,
@@ -216,26 +253,21 @@ else
             }).ToList(),
             ValorTotal = ItensVendidos.Sum(i => i.Subtotal)
         };
-        
+
+        // Salva a venda
         await VendaService.AdicionarVenda(novaVenda);
-        
-        var itensVenda = ItensVendidos.Select(i => new VendaItemDto
+
+        // Adiciona os itens da venda
+        foreach (var item in ItensVendidos)
         {
-            ProdutoId = i.ProdutoId,
-            Quantidade = i.Quantidade,
-            ValorUnitario = i.ValorUnitario,
-            VendaId = novaVendaId 
-        })
-        .Where(i => i.VendaId == novaVendaId)
-        .ToList();
-        
-        foreach (var item in itensVenda)
-        {
+            item.VendaId = novaVendaId;  // Atribui corretamente o ID da venda aos itens
             await VendaItemService.AdicionarVendaItem(item);
         }
 
+        // Atualiza as vendas do dia
         VendasDoDia.Add(novaVenda);
-        
+
+        // Limpa o estado do modal
         ItensVendidos.Clear();
         NovaFormaDePagamentoId = Guid.Empty;
         ModalRegistrarVenda.Hide();
@@ -253,9 +285,10 @@ else
         ProdutoSku = string.Empty;
         NomeProduto = string.Empty;
         QuantidadeVendida = 1;
+        ItensVendidos.Clear();
+        NovaFormaDePagamentoId = Guid.Empty;
         ModalRegistrarVenda.Show();
     }
-    
     private async Task ToggleExibirItens(DataGridRowMouseEventArgs<VendaDto> args)
     {
         var venda = args.Item;

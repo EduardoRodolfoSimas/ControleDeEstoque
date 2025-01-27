@@ -5,7 +5,7 @@ namespace ControleDeEstoque.Services.CategoriaService;
 public class CategoriaService : ICategoriaService.ICategoriaService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://localhost:7098/categoria";
+    private const string ApiUrl = "https://localhost:5012/categoria";
 
     public CategoriaService(HttpClient httpClient)
     {
