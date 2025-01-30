@@ -47,13 +47,7 @@ else
                               RowClicked="ToggleExibirItens">
                         <DataGridColumns>
                             <DataGridColumn TItem="VendaDto" Field="@nameof(VendaDto.DataVenda)" Caption="Data da Venda" DisplayFormat="{0:dd/MM/yyyy HH:mm}" />
-                            <DataGridColumn TItem="VendaDto"
-                                            Caption="Método de Pagamento"
-                                            DisplayTemplate="@(context => builder =>
-                                                             {
-                                                                 var formaPagamento = FormasDePagamento.FirstOrDefault(f => f.Id == context.MetodoPagamentoId)?.Tipo ?? "Método não encontrado";
-                                                                 builder.AddContent(0, formaPagamento);
-                                                             })" />
+                            <DataGridColumn TItem="VendaDto" Field="@nameof(VendaDto.MetodoPagamentoTipo)" Caption="Método de Pagamento" />
                             <DataGridNumericColumn TItem="VendaDto" Field="@nameof(VendaDto.ValorTotal)" Caption="Valor Total" DisplayFormat="{0:C}" />
                         </DataGridColumns>
                     </DataGrid>
@@ -73,7 +67,7 @@ else
                     <CardBody>
                         <DataGrid TItem="VendaItemDto" Data="ItensExibidos" Striped="true" Bordered="true" Hoverable="true">
                             <DataGridColumns>
-                                <DataGridColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ProdutoId)" Caption="Produto"/>
+                                <DataGridColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ProdutoNome)" Caption="Produto"/>
                                 <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ValorUnitario)" Caption="Valor Unitário" DisplayFormat="{0:C}"/>
                                 <DataGridColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.Quantidade)" Caption="Quantidade"/>
                                 <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}"/>
@@ -88,7 +82,7 @@ else
 
 <!-- Modal Registrar Venda -->
 <Modal @ref="ModalRegistrarVenda">
-    <ModalContent Size="ModalSize.Large" Centered="true">
+    <ModalContent Size="ModalSize.ExtraLarge" Centered="true">
         <ModalHeader>
             <strong>Registrar Nova Venda</strong>
         </ModalHeader>
@@ -103,23 +97,19 @@ else
                 </Addons>
             </Field>
 
-            <!-- Botão separado -->
-            <Div class="mt-3">
-                <Button Color="Color.Default" Clicked="AdicionarProduto">
-                    <Icon Name="IconName.PlusCircle" /> Adicionar Produto
-                </Button>
-            </Div>
-
-            <!-- Nome do produto -->
-            <Field>
-                <FieldLabel>Nome do Produto</FieldLabel>
-                <TextEdit @bind-Text="NomeProduto" Disabled="true" />
-            </Field>
-
             <!-- Campo de quantidade -->
             <Field>
                 <FieldLabel>Quantidade</FieldLabel>
                 <NumericEdit TValue="int" @bind-Value="QuantidadeVendida" Min="1" />
+            </Field>
+
+            <!-- Botão separado -->
+            <Field>
+                <Div class="mt-3 w-100">
+                    <Button Color="Color.Default" Clicked="AdicionarProduto" Class="w-100">
+                        <Icon Name="IconName.PlusCircle" /> Adicionar Produto
+                    </Button>
+                </Div>
             </Field>
 
             <!-- Itens adicionados -->
@@ -127,17 +117,17 @@ else
                 <FieldLabel>Itens Adicionados</FieldLabel>
                 <DataGrid TItem="VendaItemDto" Data="ItensVendidos" Striped="true" Bordered="true">
                     <DataGridColumns>
-                        <DataGridColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ProdutoId)" Caption="Produto" />
+                        <DataGridColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ProdutoNome)" Caption="Produto" />
                         <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.Quantidade)" Caption="Quantidade" />
-                        <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ValorUnitario)" Caption="Valor Unitário" DisplayFormat="{0:C}" />
+                       <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.ValorUnitario)" Caption="Valor Unitário" DisplayFormat="{0:C}" />
                         <DataGridNumericColumn TItem="VendaItemDto" Field="@nameof(VendaItemDto.Subtotal)" Caption="Subtotal" DisplayFormat="{0:C}" />
-                        <DataGridCommandColumn TItem="VendaItemDto">
-                            <CommandTemplate>
+                        <DataGridColumn TItem="VendaItemDto" Caption="Ações">
+                            <Template>
                                 <Button Color="Color.Danger" Clicked="() => RemoverItem(context)">
-                                    <Icon Name="IconName.Clear" /> Remover
+                                    <Icon Name="IconName.Delete" />
                                 </Button>
-                            </CommandTemplate>
-                        </DataGridCommandColumn>
+                            </Template>
+                        </DataGridColumn>
                     </DataGridColumns>
                 </DataGrid>
             </Field>
@@ -145,18 +135,17 @@ else
             <!-- Seleção de forma de pagamento -->
             <Field>
                 <Label for="FormaDePagamento">Forma de Pagamento</Label>
-                <Select TValue="Guid" @bind-Value="NovaFormaDePagamentoId">
-                    @if (FormasDePagamento != null)
+                <Select TValue="Guid" @bind-SelectedValue="NovaFormaDePagamentoId">
+                    @if (FormasDePagamento != null && FormasDePagamento.Any())
                     {
-                        foreach (var forma in FormasDePagamento)
+                        @foreach (var forma in FormasDePagamento)
                         {
                             <SelectItem Value="@forma.Id">@forma.Tipo</SelectItem>
-                            NovaFormaDePagamentoId = forma.Id;
                         }
                     }
-                    else
+                    else 
                     {
-                        <SelectItem Value="default(Guid)" Disabled="true">Nenhuma forma de pagamento cadastrada</SelectItem>
+                        <SelectItem Value="Guid.Empty">Nenhuma forma de pagamento encontrada</SelectItem>
                     }
                 </Select>
             </Field>
@@ -181,17 +170,16 @@ else
     private Modal ModalRegistrarVenda;
     private VendaItemDto context;
     private Guid novaVendaId = Guid.NewGuid();
-
+    private bool hasSelected = false;
 
     protected override async Task OnInitializedAsync()
     {
         FormasDePagamento = await FormaDePagamentoService.ListarFormasDePagamento();
         VendasDoDia = await VendaService.ListarVendas();
     }
-
+    
     private async Task AdicionarProduto()
         {
-        // Obtém os produtos cadastrados
         var produtos = await ProdutoService.ListarProdutos();
 
         // Procura o produto selecionado pelo SKU
@@ -216,8 +204,9 @@ else
             var item = new VendaItemDto
             {
                 Id = Guid.NewGuid(),
-                VendaId = novaVendaId, // A ID da venda já foi gerada no momento de salvar
+                VendaId = novaVendaId,
                 ProdutoId = ProdutoSelecionado.Id,
+                ProdutoNome = ProdutoSelecionado.Nome,
                 Quantidade = QuantidadeVendida,
                 ValorUnitario = ProdutoSelecionado.ValorUnitario,
                 Subtotal = ProdutoSelecionado.ValorUnitario * QuantidadeVendida
@@ -230,7 +219,7 @@ else
         NomeProduto = string.Empty;
         QuantidadeVendida = 1;
     }
-
+    
     private void RemoverItem(VendaItemDto item)
     {
         ItensVendidos.Remove(item);

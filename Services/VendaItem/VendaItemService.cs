@@ -7,7 +7,7 @@ namespace ControleDeEstoque.Services.VendaItemService;
 public class VendaItemService : IVendaItemService.IVendaItemService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "https://localhost:5012/vendaitem";
+    private const string ApiUrl = "http://localhost:5012/vendaitem";
 
     public VendaItemService(HttpClient httpClient)
     {
